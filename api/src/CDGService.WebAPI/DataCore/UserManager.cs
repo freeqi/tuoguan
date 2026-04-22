@@ -68,10 +68,16 @@ namespace CDGService.WebAPI.DataCore
                 username = username.Decrypt();
                 //  throw new Exception("用户名错误或该员工已删除" );
                 UserLoginOutPut outPut = new UserLoginOutPut();
-                var user = await UserStore.Entities.Include(t => t.Employee).Where(t => t.UserName == (username) && t.IsDelete == false).FirstOrDefaultAsync();
+                
+                // 使用安全的查询方式，避免直接比较可能为null的字段
+                var user = await UserStore.Entities.Include(t => t.Employee).FirstOrDefaultAsync(t => 
+                    t.IsDelete == false && 
+                    string.Equals(t.UserName, username, StringComparison.OrdinalIgnoreCase)
+                );
+                
                 if (user == null) throw new Exception("用户名错误或该员工已删除" + username);
                 if (user.Employee == null || user.Employee.IsDelete) throw new Exception("用户名错误或该员工已删除" + username);
-                if (user.Pwd != pwd.MD5()) throw new Exception("密码错误");
+                if (string.IsNullOrEmpty(user.Pwd) || user.Pwd != pwd.MD5()) throw new Exception("密码错误");
                 if (!user.IsActive)
                     throw new Exception("您的账号已经被锁定，无法登录系统，请联系管理员" + username);
                 var usertoken = await UserLoginGetTokenAsync(user);
@@ -92,7 +98,13 @@ namespace CDGService.WebAPI.DataCore
                     }
                     outPut.button = Listbuttons.ToArray();
                     outPut.menu = menuOutPut.children.ToArray();
-                    outPut.account = new account() { Id = user.Id, token = usertoken.Token, employeeId = user.EmployeeId + "", userName = user.UserName, EmpName = user.Employee?.Name ?? string.Empty };
+                    outPut.account = new account() { 
+                        Id = user.Id, 
+                        token = usertoken.Token, 
+                        employeeId = user.EmployeeId ?? string.Empty, 
+                        userName = user.UserName ?? string.Empty, 
+                        EmpName = user.Employee?.Name ?? string.Empty 
+                    };
 
                     await _logManager.WriteLoginLogAsync(user.Id, usertoken == null ? "尝试登录系统失败" : "登录系统成功,登录IP:" + Ip);
                     return outPut;
@@ -121,7 +133,13 @@ namespace CDGService.WebAPI.DataCore
                     }
                     outPut.button = Listbuttons.ToArray();
                     outPut.menu = menuOutPut.children.ToArray();
-                    outPut.account = new account() { Id = user.Id, token = usertoken.Token, employeeId = user.EmployeeId + "", userName = user.UserName, EmpName = user.Employee?.Name ?? string.Empty };
+                    outPut.account = new account() { 
+                        Id = user.Id, 
+                        token = usertoken.Token, 
+                        employeeId = user.EmployeeId ?? string.Empty, 
+                        userName = user.UserName ?? string.Empty, 
+                        EmpName = user.Employee?.Name ?? string.Empty 
+                    };
 
                     await _logManager.WriteLoginLogAsync(user.Id, usertoken == null ? "尝试登录系统失败" : "登录系统成功,登录IP:" + Ip);
                     return outPut;

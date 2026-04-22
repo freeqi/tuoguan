@@ -91,19 +91,27 @@ namespace CDGService.WebAPI.Extenstions
             var isneedcheck = invocation.Method.GetCustomAttributes().Any(t => t is CheckLoginAttribute);
             if (!isneedcheck)
             {
-                var ip = (invocation.Proxy as Controller)?.HttpContext?.GetUserIp();
-
-                if (!string.IsNullOrEmpty(ip) && (ip.Contains("172.16.7") || ip.Contains("172.16.6")))
-                { 
-                    throw new Exception("禁止访问");
+                var tempController = invocation.Proxy as ControllerBase;
+                if (tempController != null && tempController.HttpContext != null)
+                {
+                    var ip = tempController.HttpContext.GetUserIp();
+                    if (!string.IsNullOrEmpty(ip) && (ip.Contains("172.16.7") || ip.Contains("172.16.6")))
+                    {
+                        throw new Exception("禁止访问");
+                    }
                 }
-                else
-                    return;
+                return;
 
             }
 
-            var request = (invocation.Proxy as Controller)?.HttpContext.Request;
-            var token = request?.Headers["token"];
+            var controller = invocation.Proxy as ControllerBase;
+            if (controller == null || controller.HttpContext == null)
+            {
+                throw new Exception("未登录的请求");
+            }
+            var request = controller.HttpContext.Request;
+            var tokenHeader = request.Headers["token"];
+            var token = tokenHeader.FirstOrDefault();
 
             //  token = "764dafb2c1aa59482f583812b07e4234b2a488fa890fa0b5";//测试用 dd669205cad8860e ab29aa0ae0644549a6bfb9639889f54b  铜梁：tl29aa0ae0644549a6bfb9639889f54d
             if (string.IsNullOrWhiteSpace(token)) throw new Exception("未登录的请求");
@@ -115,16 +123,23 @@ namespace CDGService.WebAPI.Extenstions
             _userinfo.SetUserInfo(token);
 
             //所有提交的参数包写入日志 
-
-            request.EnableBuffering();
-            request.Body.Position = 0;
-            var requestReader = new StreamReader(request.Body);
-            var requestContent = requestReader.ReadToEnd();
-            request.Body.Position = 0;
-            string filename = Path.Combine(Directory.GetCurrentDirectory(), "Logs/Operation",
-                $"CDGServiceWebApi{DateTime.Now.ToString("yyyyMMdd")}.log");
-            string Content = $"======================================================\r\n操作人：{userId}\r\n请求方式：{request.Method}\r\n路由：{request.Path}\r\n数据包：{requestContent}\r\n时间：{DateTime.Now}";
-            LogHelper.WriteCommLog(Content, filename);
+            try
+            {
+                request.EnableBuffering();
+                request.Body.Position = 0;
+                var requestReader = new StreamReader(request.Body);
+                var requestContent = requestReader.ReadToEnd();
+                request.Body.Position = 0;
+                string filename = Path.Combine(Directory.GetCurrentDirectory(), "Logs/Operation",
+                    $"CDGServiceWebApi{DateTime.Now.ToString("yyyyMMdd")}.log");
+                string Content = $"======================================================\r\n操作人：{userId}\r\n请求方式：{request.Method}\r\n路由：{request.Path}\r\n数据包：{requestContent}\r\n时间：{DateTime.Now}";
+                LogHelper.WriteCommLog(Content, filename);
+            }
+            catch (Exception ex)
+            {
+                // 日志写入失败不影响正常流程
+                LogHelper.WriteErrLog($"写入操作日志失败：{ex.Message}");
+            }
 
 
 

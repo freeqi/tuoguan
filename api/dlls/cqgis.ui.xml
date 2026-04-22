@@ -1,0 +1,1866 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>cqgis.ui</name>
+    </assembly>
+    <members>
+        <member name="T:cqgis.ui.AutoTipText">
+            <summary>
+            自动提示的类
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.AutoUpDownItem">
+            <summary>
+            可以上下移动的Item
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Counter">
+            <summary>
+            一个时间打点器
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.ListBoxSortControl">
+            <summary>
+            ListBoxSortControl
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.ListBoxSortControl.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.IntToBoolConverter">
+            <summary>
+            和给定的参数相等，返回TRUE，否则为FALSE
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Core.DoubleBufferedQueue`1">
+            <summary>
+            双缓冲队列
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="F:cqgis.ui.Core.DoubleBufferedQueue`1._queue1">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Core.DoubleBufferedQueue`1.#ctor(System.Int32)">
+            <summary>
+            双缓冲队列
+            </summary>
+            <param name="millisecond">消费者线程处理一批后，需要延时的时间，实现定时间隔操作</param>
+        </member>
+        <member name="P:cqgis.ui.Core.DoubleBufferedQueue`1.ConsumerAction">
+            <summary>
+            消息者处理方法
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.BrushHelper">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.ToBrush(System.Windows.Media.Color)">
+            <summary>
+            
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.ToBrush(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.ChangeOpacity(System.Windows.Media.Brush,System.Double)">
+            <summary>
+            改变brush的透明度
+            </summary>
+            <param name="brush">
+            The brush to copy.
+            </param>
+            <param name="opacity">
+            The opacity.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateGradientBrush(System.Collections.Generic.IList{System.Windows.Media.Color},System.Boolean)">
+            <summary>
+            用一系列颜色 创建
+            </summary>
+            <param name="colors">The colors.</param>
+            <param name="horizontal">if set to <c>true</c> [horizontal].</param>
+            <returns>A LinearGradientBrush.</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateGrayBrush(System.Double)">
+            <summary>
+            创建一个灰度的brush
+            </summary>
+            <param name="intensity">
+            灰度的强度 intensity(0-1) 0黑 1白
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateHsvBrush(System.Double,System.Boolean)">
+            <summary>
+             
+            </summary>
+            <param name="alpha">The opacity (0-1).</param>
+            <param name="horizontal">if set to <c>true</c> [horizontal].</param>
+            <returns>LinearGradientBrush.</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateRainbowBrush(System.Boolean)">
+            <summary>
+            创建彩虹色带
+            </summary>
+            <returns>
+            A rainbow brush.
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateSteppedGradientBrush(System.Collections.Generic.IList{System.Windows.Media.Color},System.Boolean)">
+            <summary>
+            创建有步阶的色带
+            </summary>
+            <param name="colors">The colors.</param>
+            <param name="horizontal">if set to <c>true</c> [horizontal].</param>
+            <returns>A gradientbrush.</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateSteppedGradientBrush(System.Windows.Media.LinearGradientBrush)">
+            <summary>
+            从渐变过度的LinearGradientBrush创建有步阶的LinearGradientBrush
+            </summary>
+            <param name="gradient">
+            The gradient.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.BrushHelper.CreateSteppedGradientBrush(System.Windows.Media.LinearGradientBrush,System.Int32)">
+            <summary>
+            从渐变的brush创建给定步数的brush
+            </summary>
+            <param name="gradient">
+            The gradient.
+            </param>
+            <param name="steps">
+            The number of steps.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:cqgis.ui.Helper.ColorHelper">
+            <summary>
+             <see cref="T:System.Windows.Media.Color"/>的辅助方法
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.ColorHelper.UndefinedColor">
+            <summary>
+             #00000000.
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ChangeAlpha(System.Windows.Media.Color,System.Byte)">
+            <summary>
+            修改颜色的透明值
+            </summary>
+            <param name="c">
+            </param>
+            <param name="alpha">
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ChangeIntensity(System.Windows.Media.Color,System.Double)">
+            <summary>
+            修改颜色的强度
+            </summary>
+            <param name="c">
+            The c.
+            </param>
+            <param name="factor">
+            The factor.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ColorDifference(System.Windows.Media.Color,System.Windows.Media.Color)">
+            <summary>
+            计算两个颜色的差异
+            </summary>
+            <param name="c1">
+            </param>
+            <param name="c2">
+            </param>
+            <returns>
+            L2-norm in RGBA space
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ColorToHex(System.Windows.Media.Color)">
+            <summary>
+            <see cref="T:System.Windows.Media.Color"/> 转十六进制字符串
+            </summary>
+            <param name="color">
+            </param>
+            <returns>
+            The color to hex.
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ColorToHsv(System.Windows.Media.Color)">
+             <summary>
+            <see cref="T:System.Windows.Media.Color"/> 转 HSV 值 (double)
+             </summary>
+             <param name="color">
+             </param>
+             <returns>
+             Array of [Hue,Saturation,Value] in the range [0,1]
+             </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ColorToHsvBytes(System.Windows.Media.Color)">
+            <summary>
+            Converts from a <see cref="T:System.Windows.Media.Color"/> to HSV values (byte)
+            </summary>
+            <param name="color">
+            </param>
+            <returns>
+            Array of [Hue,Saturation,Value] in the range [0,255]
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.ColorToUint(System.Windows.Media.Color)">
+            <summary>
+            Convert a <see cref="T:System.Windows.Media.Color"/> to unsigned int
+            </summary>
+            <param name="c">
+            </param>
+            <returns>
+            The color to uint.
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.HexToColor(System.String)">
+            <summary>
+            #FF123456 这种格式转成color
+            </summary>
+            <param name="value">
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.HsvToColor(System.Byte,System.Byte,System.Byte)">
+            <summary>
+            HSV转RGB
+            </summary>
+            <param name="hue">
+            The hue.
+            </param>
+            <param name="saturation">
+            The saturation.
+            </param>
+            <param name="value">
+            The value.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.HsvToColor(System.Double[])">
+            <summary>
+            Create a color from the specified HSV.
+            </summary>
+            <param name="hsv">
+            The HSV.
+            </param>
+            <returns>
+            A color.
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.HsvToColor(System.Double,System.Double,System.Double)">
+            <summary>
+            Convert from HSV to <see cref="T:System.Windows.Media.Color"/>
+            http://en.wikipedia.org/wiki/HSL_color_space
+            </summary>
+            <param name="hue">
+            Hue [0,1]
+            </param>
+            <param name="sat">
+            Saturation [0,1]
+            </param>
+            <param name="val">
+            Value [0,1]
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.HueDifference(System.Windows.Media.Color,System.Windows.Media.Color)">
+            <summary>
+            Calculate the difference in hue between two <see cref="T:System.Windows.Media.Color"/>s.
+            </summary>
+            <param name="c1">
+            </param>
+            <param name="c2">
+            </param>
+            <returns>
+            The hue difference.
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.Interpolate(System.Windows.Media.Color,System.Windows.Media.Color,System.Double)">
+            <summary>
+            两个颜色之间的线性插值
+            </summary>
+            <param name="c0">
+            </param>
+            <param name="c1">
+            </param>
+            <param name="x">
+            比例 0-1
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.UIntToColor(System.UInt32)">
+            <summary>
+            Convert an unsigned int (32bit) to <see cref="T:System.Windows.Media.Color"/>
+            </summary>
+            <param name="color">
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.GetRandomColor">
+            <summary>
+            获取随机颜色
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ColorHelper.GetDarkerColor(System.Windows.Media.Color)">
+            <summary>
+            获取加深的颜色
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="T:cqgis.ui.Helper.DispatcherHelper">
+            <summary>
+             主线程的辅助
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.DispatcherHelper.UIDispatcher">
+            <summary>
+            程序的UI线程
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.DispatcherHelper.CheckInvokeOnUI(System.Action)">
+            <summary>
+            在UI线程上执行操作
+            </summary>
+            <param name="action"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.DispatcherHelper.CheckBeginInvokeOnUI(System.Action,System.Windows.Threading.DispatcherPriority)">
+            <summary>
+            在UI线程上执行操作
+            </summary>
+            <param name="action"></param>
+            <param name="dispatcherPriority"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.DispatcherHelper.Initialize">
+            <summary>
+             初始化主线程
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.PasswordHelper">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.PasswordHelper.EncryptDes(System.String,System.String)">
+            <summary>
+            DES加密字符串
+            </summary>
+            <param name="encryptString">待加密的字符串</param>
+            <param name="encryptKey">加密密钥,要求为8位</param>
+            <returns>加密成功返回加密后的字符串，失败返回源串</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.PasswordHelper.DecryptDes(System.String,System.String)">
+            <summary>
+            DES解密字符串
+            </summary>
+            <param name="decryptString">待解密的字符串</param>
+            <param name="decryptKey">解密密钥,要求为8位,和加密密钥相同</param>
+            <returns>解密成功返回解密后的字符串，失败返源串</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.PasswordHelper.MD5(System.String)">
+            <summary>
+            MD5 hash加密
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ListHelper.Shuffle``1(System.Collections.Generic.IList{``0})">
+            <summary>
+            随机交换列表中数据的位置
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="deck"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.MD5Helper.GetMD5(System.String)">
+            <summary>
+            获取文件的md5值
+            </summary>
+            <param name="filename">文件的全名</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.MD5Helper.Frombase64TobBytes(System.String)">
+            <summary>
+            从64位字符串解码
+            </summary>
+            <param name="base64string"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.MD5Helper.Frombase64ToString(System.String)">
+            <summary>
+            从64位字符串解密
+            </summary>
+            <param name="base64string"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.MD5Helper.ToBase64String(System.Byte[])">
+            <summary>
+            数组转64位字符串
+            </summary>
+            <param name="datas"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.MD5Helper.ToBase64String(System.String)">
+            <summary>
+            字符串转成base64
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.WS_CAPTION">
+            <summary>
+            带有外边框和标题的windows的样式
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.WS_EX_LAYERED">
+            <summary>
+            window 扩展样式 分层显示
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.LWA_ALPHA">
+            <summary>
+            带有alpha的样式
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.LWA_COLORKEY">
+            <summary>
+            颜色设置
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.GWL_STYLE">
+            <summary>
+            window的基本样式
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.NativeMethods.GWL_EXSTYLE">
+            <summary>
+            window的扩展样式
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.NativeMethods.SetWindowLong(System.IntPtr,System.Int32,System.Int32)">
+            <summary>
+            设置窗体的样式
+            </summary>
+            <param name="handle">操作窗体的句柄</param>
+            <param name="oldStyle">进行设置窗体的样式类型.</param>
+            <param name="newStyle">新样式</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.NativeMethods.GetWindowLong(System.IntPtr,System.Int32)">
+            <summary>
+            获取窗体指定的样式.
+            </summary>
+            <param name="handle">操作窗体的句柄</param>
+            <param name="style">要进行返回的样式</param>
+            <returns>当前window的样式</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.NativeMethods.SetWindowRgn(System.IntPtr,System.IntPtr,System.Boolean)">
+            <summary>
+            设置窗体的工作区域.
+            </summary>
+            <param name="handle">操作窗体的句柄.</param>
+            <param name="handleRegion">操作窗体区域的句柄.</param>
+            <param name="regraw">if set to <c>true</c> [regraw].</param>
+            <returns>返回值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.NativeMethods.SetLayeredWindowAttributes(System.IntPtr,System.UInt32,System.Byte,System.Int32)">
+            <summary>
+            Sets the layered window attributes.
+            </summary>
+            <param name="handle">要进行操作的窗口句柄</param>
+            <param name="colorKey">RGB的值</param>
+            <param name="alpha">Alpha的值，透明度</param>
+            <param name="flags">附带参数</param>
+            <returns>true or false</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.CharHelper.GetFirstPinYin(System.String)">
+            <summary>
+                获取拼音首字母
+            </summary>
+            <param name="string"></param>
+            <returns></returns>
+        </member>
+        <member name="T:cqgis.ui.Helper.ChineseEnumAttribute">
+            <summary>
+             枚举值的中文名称特性
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.ChineseEnumAttribute.ChineseName">
+            <summary>
+             中文名称 
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.ChineseEnumAttribute.#ctor(System.String)">
+            <summary>
+            枚举值的中文名称
+            </summary>
+            <param name="chinese"></param>
+        </member>
+        <member name="T:cqgis.ui.Helper.RoleCheckValueAttribute">
+            <summary>
+            方法的权限值
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.Strings">
+            <summary>
+            自定义的String类，可以实现一般string的操作
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.#ctor">
+            <summary>
+            自定义的String类，可以实现一般string的操作
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.Strings.Stringbuilder">
+            <summary>
+            内部采用的stringbuilder，所有的数据都保存在这里
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.op_Implicit(System.String)~cqgis.ui.Helper.Strings">
+            <summary>
+            采用内部方法转换成字符串
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.op_Addition(cqgis.ui.Helper.Strings,System.String)">
+            <summary>
+            重载+运算符 
+            </summary>
+            <param name="self"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.op_Addition(cqgis.ui.Helper.Strings,System.Object)">
+            <summary>
+            重载+运算符
+            </summary>
+            <param name="self"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.op_Implicit(cqgis.ui.Helper.Strings)~System.String">
+            <summary>
+            采用内部方式转换成字符串
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.Strings.ToString">
+            <summary>
+            重写ToString
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.TimeHelper.Normal(System.DateTime)">
+            <summary>
+            将时间只保留为年月日时分秒，其它小数部分去掉
+            </summary>
+            <param name="time"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.TimerHelper.TimerDo(System.Action,System.TimeSpan,System.Int32,System.Boolean)">
+            <summary>
+                延时执行某个操作。
+            </summary>
+            <param name="action"></param>
+            <param name="time">间隔的时间</param>
+            <param name="runtime">
+                执行次数，
+                默认为1
+                小于1表示无限次
+            </param>
+            <param name="runnow">是否立即执行第一次</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.TimerHelper.DoEvent">
+            <summary>
+            模仿C#的Application.Doevent函数。可以适当添加try catch 模块
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.ActionTimer.#ctor(System.Action,System.TimeSpan,System.Int32,System.Boolean)">
+            <summary>
+                延时执行某个操作。
+            </summary>
+            <param name="action"></param>
+            <param name="time">间隔的时间</param>
+            <param name="runtime">
+                执行次数，
+                默认为1
+                小于1表示无限次
+            </param>
+            <param name="runoncreate">是否立即执行第一次</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EnumHelper.GetAttributeClass(System.Enum,System.Type)">
+            <summary>
+            返回指定属性类的实例
+            </summary>
+            <param name="enumSubitem">枚举类子项</param>
+            <param name="attributeType">属性类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.EnumHelper.GetAttribute``1(System.Enum)">
+            <summary>
+             返回指定的属性
+            </summary>
+            <param name="enumSubitem">属性项</param>
+            <typeparam name="T">属性类型</typeparam>
+            <returns>返回得到的项</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.EnumHelper.ToChinese(System.Enum)">
+            <summary>
+            返回枚举的描述信息，如果没有描述，返回枚举本身字符串
+            </summary>
+            <param name="enumSubitem"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.EnumHelper.TryFromChineseToEnum``1(System.String,``0@)">
+            <summary>
+            从描述信息转换成枚举类型
+            </summary>
+            <typeparam name="T">要转换成的枚举类型</typeparam>
+            <param name="desciptionstring">描述信息</param>
+            <param name="enumsubitem">转换后的结果</param>
+            <returns>转换是否成功</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.EnumHelper.TryParseToEnum``1(System.String,``0@)">
+            <summary>
+            尝试把字符串转换成枚举类型
+            </summary>
+            <typeparam name="T">要转换成的枚举类型</typeparam>
+            <param name="value">字符串值</param>
+            <param name="enumsubitem">返回的枚举 </param>
+            <returns>返回是否成功</returns>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers">
+            <summary>
+            只带默认参数的事件委托
+            </summary>
+            <param name="sender">触发事件的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`1">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="T">指定的参数类型</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="t">参数类型T的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`2">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`3">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <typeparam name="TC">指定的参数类型C</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+            <param name="c">参数类型C的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`4">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <typeparam name="TC">指定的参数类型C</typeparam>
+            <typeparam name="TD">指定的参数类型D</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+            <param name="c">参数类型C的对象</param>
+            <param name="d">参数类型D的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`5">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <typeparam name="TC">指定的参数类型C</typeparam>
+            <typeparam name="TD">指定的参数类型D</typeparam>
+            <typeparam name="TE">指定的参数类型E</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+            <param name="c">参数类型C的对象</param>
+            <param name="d">参数类型D的对象</param>
+            <param name="e">参数类型E的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`6">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <typeparam name="TC">指定的参数类型C</typeparam>
+            <typeparam name="TD">指定的参数类型D</typeparam>
+            <typeparam name="TE">指定的参数类型E</typeparam>
+            <typeparam name="TF">指定的参数类型F</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+            <param name="c">参数类型C的对象</param>
+            <param name="d">参数类型D的对象</param>
+            <param name="e">参数类型E的对象</param>
+            <param name="f">参数类型F的对象</param>
+        </member>
+        <member name="T:cqgis.ui.Helper.EventHelper.EventHandlers`7">
+            <summary>
+            带自定义参数的事件委托
+            </summary>
+            <typeparam name="TA">指定的参数类型A</typeparam>
+            <typeparam name="TB">指定的参数类型B</typeparam>
+            <typeparam name="TC">指定的参数类型C</typeparam>
+            <typeparam name="TD">指定的参数类型D</typeparam>
+            <typeparam name="TE">指定的参数类型E</typeparam>
+            <typeparam name="TF">指定的参数类型F</typeparam>
+            <typeparam name="TG">指定的参数类型G</typeparam>
+            <param name="sender">触发事件的对象</param>
+            <param name="a">参数类型A的对象</param>
+            <param name="b">参数类型B的对象</param>
+            <param name="c">参数类型C的对象</param>
+            <param name="d">参数类型D的对象</param>
+            <param name="e">参数类型E的对象</param>
+            <param name="f">参数类型F的对象</param>
+            <param name="g">参数类型G的对象</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire(cqgis.ui.Helper.EventHelper.EventHandlers,System.Object)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``1(cqgis.ui.Helper.EventHelper.EventHandlers{``0},System.Object,``0)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="t">参数1</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``2(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1},System.Object,``0,``1)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``3(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1,``2},System.Object,``0,``1,``2)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+            <param name="tc">参数3</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``4(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1,``2,``3},System.Object,``0,``1,``2,``3)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+            <param name="tc">参数3</param>
+            <param name="td">参数4</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``5(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1,``2,``3,``4},System.Object,``0,``1,``2,``3,``4)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+            <param name="tc">参数3</param>
+            <param name="td">参数4</param>
+            <param name="te">参数5</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``6(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1,``2,``3,``4,``5},System.Object,``0,``1,``2,``3,``4,``5)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+            <param name="tc">参数3</param>
+            <param name="td">参数4</param>
+            <param name="te">参数5</param>
+            <param name="tf">参数6</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.EventHelper.Fire``7(cqgis.ui.Helper.EventHelper.EventHandlers{``0,``1,``2,``3,``4,``5,``6},System.Object,``0,``1,``2,``3,``4,``5,``6)">
+            <summary>
+            触发事件
+            </summary>
+            <param name="Event">事件</param>
+            <param name="sender">触发事件的实体</param>
+            <param name="ta">参数1</param>
+            <param name="tb">参数2</param>
+            <param name="tc">参数3</param>
+            <param name="td">参数4</param>
+            <param name="te">参数5</param>
+            <param name="tf">参数6</param>
+            <param name="tg">参数7</param>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.MonitorFromWindow(System.IntPtr,System.Int32)">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.FullScreenManager.MONITORINFO">
+            <summary>
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.MONITORINFO.cbSize">
+            <summary>
+            </summary>            
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.MONITORINFO.rcMonitor">
+            <summary>
+            </summary>            
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.MONITORINFO.rcWork">
+            <summary>
+            </summary>            
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.MONITORINFO.dwFlags">
+            <summary>
+            </summary>            
+        </member>
+        <member name="T:cqgis.ui.Helper.FullScreenManager.POINT">
+            <summary>
+            POINT aka POINTAPI
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.POINT.x">
+            <summary>
+            x coordinate of point.
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.POINT.y">
+            <summary>
+            y coordinate of point.
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.POINT.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Construct a point of coordinates (x,y).
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.FullScreenManager.RECT">
+            <summary> Win32 </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.RECT.left">
+            <summary> Win32 </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.RECT.top">
+            <summary> Win32 </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.RECT.right">
+            <summary> Win32 </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.RECT.bottom">
+            <summary> Win32 </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.FullScreenManager.RECT.Empty">
+            <summary> Win32 </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.FullScreenManager.RECT.Width">
+            <summary> Win32 </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.FullScreenManager.RECT.Height">
+            <summary> Win32 </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary> Win32 </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.#ctor(cqgis.ui.Helper.FullScreenManager.RECT)">
+            <summary> Win32 </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.FullScreenManager.RECT.IsEmpty">
+            <summary> Win32 </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.ToString">
+            <summary> Return a user friendly representation of this struct </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.Equals(System.Object)">
+            <summary> Determine if 2 RECT are equal (deep compare) </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.GetHashCode">
+            <summary>Return the HashCode for this struct (not garanteed to be unique)</summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.op_Equality(cqgis.ui.Helper.FullScreenManager.RECT,cqgis.ui.Helper.FullScreenManager.RECT)">
+            <summary> Determine if 2 RECT are equal (deep compare)</summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.FullScreenManager.RECT.op_Inequality(cqgis.ui.Helper.FullScreenManager.RECT,cqgis.ui.Helper.FullScreenManager.RECT)">
+            <summary> Determine if 2 RECT are different(deep compare)</summary>
+        </member>
+        <member name="T:cqgis.ui.Helper.SingletonBase`1">
+            <summary>
+            单例模式的基类，继承此类后自动拥有单例模式的特征
+            </summary>
+            <typeparam name="T">子类</typeparam>
+        </member>
+        <member name="F:cqgis.ui.Helper.SingletonBase`1.SyncRoot">
+            <summary>
+            用于线程之间安全锁定的变量
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Helper.SingletonBase`1._instance">
+            <summary>
+            多个线程共享的类实例
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Helper.SingletonBase`1.Instance">
+            <summary>
+            类的单一实体
+            </summary>
+            <example>Class1.Instance</example>
+        </member>
+        <member name="T:cqgis.ui.Helper.StringHelper">
+            <summary>
+            字符串的辅助类
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.IsNullorEmpty(System.String)">
+            <summary>
+            判断字符串是否为Null或空字符串,或是只有空白字符串组成
+            </summary>
+            <param name="string">判断的字符串</param>
+            <returns>布尔型</returns>
+            <example>"Hello World".IsNullorEmpty</example>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.LastWithString(System.String,System.String)">
+            <summary>
+            在字符串尾部加上特定的字符串，如果已存在，则不添加
+            </summary>
+            <param name="string">原字符串</param>
+            <param name="defaultstring">要在字符串后面加的字符串</param>
+            <returns>添加后的字符串</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.StartWithString(System.String,System.String)">
+            <summary>
+            在字符串开头加上特定的字符串，如果已存在，则不添加
+            </summary>
+            <param name="string">原字符串</param>
+            <param name="defaultstring">要在字符串前面加的字符串</param>
+            <returns>添加后的字符串</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToInt(System.String)">
+            <summary>
+            把字符串转换成Int
+            </summary>
+            <param name="string">字符串</param>
+            <returns>返回转换后的Int型,如果转换失败，返回 int.MinValue</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToInt(System.String,System.Int32)">
+            <summary>
+            把字符串转换成Int；如果转换失败，返回设置的默认值
+            </summary>
+            <param name="string">需要转换的字符串</param>
+            <param name="defaultInt">默认的int值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToDouble(System.String)">
+            <summary>
+            把字符串转换成double
+            </summary>
+            <param name="string">字符串</param>
+            <returns>返回转换后的Int型,如果转换失败，返回负无穷(double.NegativeInfinity)</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToDouble(System.String,System.Double)">
+            <summary>
+            把字符串转换成double；如果转换失败，返回设置的默认值
+            </summary>
+            <param name="string">需要转换的字符串</param>
+            <param name="defaultInt">默认的double值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToFloat(System.String,System.Single)">
+            <summary>
+            把字符串转换成float
+            </summary>
+            <param name="string">要转换的字符串</param>
+            <param name="defaultFloat">转换不成功，需要返回的默认值</param>
+            <returns>转换后的结果，如果不成功，返回传入的默认值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToFloat(System.String)">
+            <summary>
+            把字符串转换成float型，转换不成功，返回Float.MinValue
+            </summary>
+            <param name="string">要转换的字符串</param>
+            <returns>转换后的结果,转换不成功，返回负无穷(float.NegativeInfinity)</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToDateTime(System.String,System.DateTime)">
+            <summary>
+            把字符串转换成DateTime
+            </summary>
+            <param name="string">要转换的字符串</param>
+            <param name="defaultTime">转换不成功，需要返回的默认值</param>
+            <returns>转换后的结果，如果不成功，返回传入的默认值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToDateTime(System.String)">
+            <summary>
+            把字符串转换成float型，转换不成功，返回DateTime.MinValue
+            </summary>
+            <param name="string">要转换的字符串</param>
+            <returns>转换后的结果,转换不成功，返DateTime.MinValue</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToEnum``1(System.String)">
+            <summary>
+            转换成枚举类型
+            </summary>
+            <typeparam name="T">转换成的枚举类型</typeparam>
+            <param name="string">字符串</param> 
+            <returns>如果转换成功，返回转换后的值，否则返回默认值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToEnum``1(System.String,``0)">
+            <summary>
+            转换成枚举类型
+            </summary>
+            <typeparam name="T">转换成的枚举类型</typeparam>
+            <param name="string">字符串</param>
+            <param name="defaultEnum">转换失败返回的默认值</param>
+            <returns>如果转换成功，返回转换后的值，否则返回默认值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToEnumFromChinese``1(System.String)">
+            <summary>
+            根据描述信息转换成枚举类型
+            </summary>
+            <typeparam name="T">要转换成的枚举类型</typeparam>
+            <param name="string">字符串</param> 
+            <returns>如果转换成功，返回转换后的值，否则返回默认值 </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToEnumFromChinese``1(System.String,``0)">
+            <summary>
+            根据描述信息转换成枚举类型
+            </summary>
+            <typeparam name="T">要转换成的枚举类型</typeparam>
+            <param name="string">字符串</param>
+            <param name="defaultEnum">默认值</param>
+            <returns>如果转换成功，返回转换后的值，否则返回默认值 </returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToBool(System.String,System.Boolean)">
+            <summary>
+            把字符串转成bool
+            </summary>
+            <param name="string">要转换的字符串</param>
+            <param name="defaultvalue">转换不成功，需要返回的默认值</param>
+            <returns>转换后的结果，如果不成功，返回传入的默认值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.JoinWith(System.Collections.Generic.IList{System.String},System.String)">
+            <summary>
+             把一个字符串列表用符号串起来，
+             如{"1","2","3"}用";"串起来为:"1;2;3"
+             返加的字符串末尾不包括符号
+            </summary>
+            <param name="strings">字符串列表</param>
+            <param name="symbol">串的符号</param>
+            <returns>连接后的字符串</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.ToStringList(System.Collections.IEnumerable)">
+            <summary>
+            把一个其它类型的列表转成字符串
+            </summary>
+            <param name="lists"></param>
+            <returns>转换后的list</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.Cast(System.String,System.String,System.Action)">
+            <summary>
+            如果 value 和equalvalue相等就执行action
+            </summary>
+            <param name="value"></param>
+            <param name="equalvalue"></param>
+            <param name="action"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.CheckIsNullOrEmpty(System.String)">
+            <summary>
+            检测是否为空，如果是，抛出异常
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.StringHelper.CheckIsNull(System.Object)">
+            <summary>
+            检测是否为空，如果是，抛出异常
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:cqgis.ui.Helper.THelper.GetDefaultValueWhileNull``1(``0,``0)">
+            <summary>
+            当传入的对象值为NULL时，返回传入的默认值，否则返回该对象的值
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="object"></param>
+            <param name="defaultValue">为NULL时，返回的默认值</param>
+            <returns>返回值</returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.THelper.WhileNullDoAction``1(``0,System.Action)">
+            <summary>
+             当传入的参数是Null时，执行传入的方法
+            </summary>
+            <param name="object"></param>
+            <param name="action"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.ClipIn(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            把一个数的值控制在一定的范围内
+            </summary>
+            <param name="num">要控制的数值 </param>
+            <param name="min">最小值，不能小于这个值</param>
+            <param name="max">最大值，不能大于这个值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.ClipIn(System.Double,System.Double,System.Double)">
+            <summary>
+            把一个数的值控制在一定的范围内
+            </summary>
+            <param name="num">要控制的数值 </param>
+            <param name="min">最小值，不能小于这个值</param>
+            <param name="max">最大值，不能大于这个值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.ClipIn(System.Single,System.Single,System.Single)">
+            <summary>
+            把一个数的值控制在一定的范围内
+            </summary>
+            <param name="num">要控制的数值 </param>
+            <param name="min">最小值，不能小于这个值</param>
+            <param name="max">最大值，不能大于这个值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.ClipIn(System.Byte,System.Byte,System.Byte)">
+            <summary>
+            把一个数的值控制在一定的范围内
+            </summary>
+            <param name="num">要控制的数值 </param>
+            <param name="min">最小值，不能小于这个值</param>
+            <param name="max">最大值，不能大于这个值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.ClipIn(System.Decimal,System.Decimal,System.Decimal)">
+            <summary>
+            把一个数的值控制在一定的范围内
+            </summary>
+            <param name="num">要控制的数值 </param>
+            <param name="min">最小值，不能小于这个值</param>
+            <param name="max">最大值，不能大于这个值</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.ValueHelper.to16(System.Int32)">
+            <summary>
+            转成16进制,不足8位补0
+            </summary>
+            <param name="int"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.VisualHelper.FindVisualAncestor``1(System.Windows.DependencyObject,System.Boolean)">
+            <summary>
+            向上查找某个对象
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="obj"></param>
+            <param name="includeThis">是否包括这个对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.VisualHelper.FindParent``1(System.Windows.DependencyObject)">
+            <summary>
+            WPF中查找元素的父元素
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="iDp"></param>
+            <returns></returns>
+        </member>
+        <member name="M:cqgis.ui.Helper.VisualHelper.FindVisualChild``1(System.Windows.DependencyObject)">
+             <summary>
+            WPF查找元素的子元素
+             </summary>
+             <typeparam name="childItem"></typeparam>
+             <param name="obj"></param>
+             <returns></returns>
+        </member>
+        <member name="T:cqgis.ui.Separation">
+            <summary>
+            Separation.xaml 的交互逻辑
+            </summary>
+            <summary>
+            Separation
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Separation.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.TabInfoItem.Title">
+            <summary>
+            标题
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.ToolButton.OnApplyTemplate">
+             <summary>
+            
+             </summary>
+        </member>
+        <member name="M:cqgis.ui.ToolButton.OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e">The event data. </param>
+        </member>
+        <member name="F:cqgis.ui.ToolButton.IsCheckedProperty">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.ToolButton.IsChecked">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.EqualParameterToBoolConverter">
+            <summary>
+            和给定的参数相等，返回TRUE，否则为FALSE
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.ZWindow.IsWindowsFormHost">
+            <summary>
+            是否在窗口中加入了windowsform
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.ZWindow.IsSizeLocked">
+            <summary>
+            限制大小，不能被调整
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.MVVM.AsyncTheadMethod">
+            <summary>
+            异步执行此方法 (在背景线程中执行 BackgroundWorker)
+            使用此特性，请引用MrAdvice
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.MVVM.AsyncTheadMethod.KillExisting">
+            <summary>
+            获取或设置一个值，是否取消其它已经在执行的背景异步方法
+            这个值是希望背景线程执行的此方法只有一个，避免过载
+            默认值为true
+            </summary> 
+        </member>
+        <member name="T:cqgis.ui.MVVM.BaseCommand">
+            <summary>
+            命令的基类
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.MVVM.BaseCommand.Text">
+            <summary>
+            命令的名字
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.MVVM.BaseViewModel.onBeforePropertychanged(System.String)">
+            <summary>
+            处理属性更改事件，这个方法会在其它更改的事件前调用
+            </summary>
+            <param name="propertyName"></param>
+            <returns>如果需要继续响应其它事件处理方法，返回true,否则返回false</returns>
+        </member>
+        <member name="M:cqgis.ui.MVVM.BaseViewModel.onAfterPropertychanged(System.String)">
+            <summary>
+            处理属性更改事件，这个方法会在其它更改的事件后调用
+            </summary>
+            <param name="propertyName"></param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:cqgis.ui.MVVM.Command" -->
+        <member name="M:cqgis.ui.MVVM.Command.InitCommand(System.Object)">
+            <summary>
+            
+            </summary>
+            <param name="vm"></param>
+        </member>
+        <member name="T:cqgis.ui.MVVM.UISync">
+            <summary>
+            在UI线程中同步执行此方法
+            使用此特性，请引用MrAdvice
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.MVVM.UIAsync">
+            <summary>
+            在UI线程中异步执行此方法
+            使用此特性，请引用MrAdvice
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.MVVM.UIAsync.DispatcherPriority">
+            <summary>
+            线程优先级
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Aspect.ITryCatchProcess">
+            <summary>
+            处理TryCatch出现异常的情况
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Aspect.ITryCatchProcess.ProcessException(System.Exception,System.Reflection.MethodBase)">
+            <summary>
+            处理异常信息
+            </summary>
+            <param name="exception">异常</param>
+            <param name="method">触发异常的方法</param> 
+        </member>
+        <member name="P:cqgis.ui.Aspect.TryCatchBase.DefaultValue">
+            <summary>
+            默认值
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Aspect.TryCatchBase.IsSilent">
+            <summary>
+            沉默的，触发异常，不执行ITryCatch定义的方法
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Aspect.TryCatch">
+            <summary>
+            处理异常，如果方法中出现异常，则返回方法的默认值
+            可以通过设置DefaultValue属性设置默认值
+            如果未设置，则返回返回类型的默认值
+            使用此特性，请引用MrAdvice
+            </summary>
+        </member>
+        <member name="M:cqgis.ui.Aspect.TryCatch.Advise(ArxOne.MrAdvice.Advice.MethodAsyncAdviceContext)">
+             <summary>
+            
+             
+             </summary>
+             <param name="context"></param>
+        </member>
+        <member name="T:cqgis.ui.Annotations.CanBeNullAttribute">
+            <summary>
+            Indicates that the value of the marked element could be <c>null</c> sometimes,
+            so the check for <c>null</c> is necessary before its usage
+            </summary>
+            <example><code>
+            [CanBeNull] public object Test() { return null; }
+            public void UseTest() {
+              var p = Test();
+              var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.NotNullAttribute">
+            <summary>
+            Indicates that the value of the marked element could never be <c>null</c>
+            </summary>
+            <example><code>
+            [NotNull] public object Foo() {
+              return null; // Warning: Possible 'null' assignment
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.ItemNotNullAttribute">
+            <summary>
+            Indicates that collection or enumerable value does not contain null elements
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.ItemCanBeNullAttribute">
+            <summary>
+            Indicates that collection or enumerable value can contain null elements
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.StringFormatMethodAttribute">
+            <summary>
+            Indicates that the marked method builds string by format pattern and (optional) arguments.
+            Parameter, which contains format string, should be given in constructor. The format string
+            should be in <see cref="M:System.String.Format(System.IFormatProvider,System.String,System.Object[])"/>-like form
+            </summary>
+            <example><code>
+            [StringFormatMethod("message")]
+            public void ShowError(string message, params object[] args) { /* do something */ }
+            public void Foo() {
+              ShowError("Failed: {0}"); // Warning: Non-existing argument in format string
+            }
+            </code></example>
+        </member>
+        <member name="M:cqgis.ui.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <param name="formatParameterName">
+            Specifies which parameter of an annotated method should be treated as format-string
+            </param>
+        </member>
+        <member name="T:cqgis.ui.Annotations.ValueProviderAttribute">
+            <summary>
+            For a parameter that is expected to be one of the limited set of values.
+            Specify fields of which type should be used as values for this parameter.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.InvokerParameterNameAttribute">
+            <summary>
+            Indicates that the function argument should be string literal and match one
+            of the parameters of the caller function. For example, ReSharper annotates
+            the parameter of <see cref="T:System.ArgumentNullException"/>
+            </summary>
+            <example><code>
+            public void Foo(string param) {
+              if (param == null)
+                throw new ArgumentNullException("par"); // Warning: Cannot resolve symbol
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.NotifyPropertyChangedInvocatorAttribute">
+             <summary>
+             Indicates that the method is contained in a type that implements
+             <c>System.ComponentModel.INotifyPropertyChanged</c> interface and this method
+             is used to notify that some property value changed
+             </summary>
+             <remarks>
+             The method should be non-static and conform to one of the supported signatures:
+             <list>
+             <item><c>NotifyChanged(string)</c></item>
+             <item><c>NotifyChanged(params string[])</c></item>
+             <item><c>NotifyChanged{T}(Expression{Func{T}})</c></item>
+             <item><c>NotifyChanged{T,U}(Expression{Func{T,U}})</c></item>
+             <item><c>SetProperty{T}(ref T, T, string)</c></item>
+             </list>
+             </remarks>
+             <example><code>
+             public class Foo : INotifyPropertyChanged {
+               public event PropertyChangedEventHandler PropertyChanged;
+               [NotifyPropertyChangedInvocator]
+               protected virtual void NotifyChanged(string propertyName) { ... }
+            
+               private string _name;
+               public string Name {
+                 get { return _name; }
+                 set { _name = value; NotifyChanged("LastName"); /* Warning */ }
+               }
+             }
+             </code>
+             Examples of generated notifications:
+             <list>
+             <item><c>NotifyChanged("Property")</c></item>
+             <item><c>NotifyChanged(() =&gt; Property)</c></item>
+             <item><c>NotifyChanged((VM x) =&gt; x.Property)</c></item>
+             <item><c>SetProperty(ref myField, value, "Property")</c></item>
+             </list>
+             </example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.ContractAnnotationAttribute">
+            <summary>
+            Describes dependency between method input and output
+            </summary>
+            <syntax>
+            <p>Function Definition Table syntax:</p>
+            <list>
+            <item>FDT      ::= FDTRow [;FDTRow]*</item>
+            <item>FDTRow   ::= Input =&gt; Output | Output &lt;= Input</item>
+            <item>Input    ::= ParameterName: Value [, Input]*</item>
+            <item>Output   ::= [ParameterName: Value]* {halt|stop|void|nothing|Value}</item>
+            <item>Value    ::= true | false | null | notnull | canbenull</item>
+            </list>
+            If method has single input parameter, it's name could be omitted.<br/>
+            Using <c>halt</c> (or <c>void</c>/<c>nothing</c>, which is the same)
+            for method output means that the methos doesn't return normally.<br/>
+            <c>canbenull</c> annotation is only applicable for output parameters.<br/>
+            You can use multiple <c>[ContractAnnotation]</c> for each FDT row,
+            or use single attribute with rows separated by semicolon.<br/>
+            </syntax>
+            <examples><list>
+            <item><code>
+            [ContractAnnotation("=> halt")]
+            public void TerminationMethod()
+            </code></item>
+            <item><code>
+            [ContractAnnotation("halt &lt;= condition: false")]
+            public void Assert(bool condition, string text) // regular assertion method
+            </code></item>
+            <item><code>
+            [ContractAnnotation("s:null => true")]
+            public bool IsNullOrEmpty(string s) // string.IsNullOrEmpty()
+            </code></item>
+            <item><code>
+            // A method that returns null if the parameter is null,
+            // and not null if the parameter is not null
+            [ContractAnnotation("null => null; notnull => notnull")]
+            public object Transform(object data) 
+            </code></item>
+            <item><code>
+            [ContractAnnotation("s:null=>false; =>true,result:notnull; =>false, result:null")]
+            public bool TryParse(string s, out Person result)
+            </code></item>
+            </list></examples>
+        </member>
+        <member name="T:cqgis.ui.Annotations.LocalizationRequiredAttribute">
+            <summary>
+            Indicates that marked element should be localized or not
+            </summary>
+            <example><code>
+            [LocalizationRequiredAttribute(true)]
+            public class Foo {
+              private string str = "my string"; // Warning: Localizable string
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.CannotApplyEqualityOperatorAttribute">
+            <summary>
+            Indicates that the value of the marked type (or its derivatives)
+            cannot be compared using '==' or '!=' operators and <c>Equals()</c>
+            should be used instead. However, using '==' or '!=' for comparison
+            with <c>null</c> is always permitted.
+            </summary>
+            <example><code>
+            [CannotApplyEqualityOperator]
+            class NoEquality { }
+            class UsesNoEquality {
+              public void Test() {
+                var ca1 = new NoEquality();
+                var ca2 = new NoEquality();
+                if (ca1 != null) { // OK
+                  bool condition = ca1 == ca2; // Warning
+                }
+              }
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.BaseTypeRequiredAttribute">
+            <summary>
+            When applied to a target attribute, specifies a requirement for any type marked
+            with the target attribute to implement or inherit specific type or types.
+            </summary>
+            <example><code>
+            [BaseTypeRequired(typeof(IComponent)] // Specify requirement
+            public class ComponentAttribute : Attribute { }
+            [Component] // ComponentAttribute requires implementing IComponent interface
+            public class MyComponent : IComponent { }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.UsedImplicitlyAttribute">
+            <summary>
+            Indicates that the marked symbol is used implicitly
+            (e.g. via reflection, in external library), so this symbol
+            will not be marked as unused (as well as by other usage inspections)
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.MeansImplicitUseAttribute">
+            <summary>
+            Should be used on attributes and causes ReSharper
+            to not mark symbols marked with such attributes as unused
+            (as well as by other usage inspections)
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseKindFlags.Access">
+            <summary>Only entity marked with attribute considered used</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseKindFlags.Assign">
+            <summary>Indicates implicit assignment to a member</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature">
+            <summary>
+            Indicates implicit instantiation of a type with fixed constructor signature.
+            That means any unused constructor parameters won't be reported as such.
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature">
+            <summary>Indicates implicit instantiation of a type</summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.ImplicitUseTargetFlags">
+            <summary>
+            Specify what is considered used implicitly when marked
+            with <see cref="T:cqgis.ui.Annotations.MeansImplicitUseAttribute"/> or <see cref="T:cqgis.ui.Annotations.UsedImplicitlyAttribute"/>
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseTargetFlags.Members">
+            <summary>Members of entity marked with attribute are considered used</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.ImplicitUseTargetFlags.WithMembers">
+            <summary>Entity marked with attribute and all its members considered used</summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.PublicAPIAttribute">
+            <summary>
+            This attribute is intended to mark publicly available API
+            which should not be removed and so is treated as used
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.InstantHandleAttribute">
+            <summary>
+            Tells code analysis engine if the parameter is completely handled
+            when the invoked method is on stack. If the parameter is a delegate,
+            indicates that delegate is executed while the method is executed.
+            If the parameter is an enumerable, indicates that it is enumerated
+            while the method is executed
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.PureAttribute">
+            <summary>
+            Indicates that a method does not make any observable state changes.
+            The same as <c>System.Diagnostics.Contracts.PureAttribute</c>
+            </summary>
+            <example><code>
+            [Pure] private int Multiply(int x, int y) { return x * y; }
+            public void Foo() {
+              const int a = 2, b = 2;
+              Multiply(a, b); // Waring: Return value of pure method is not used
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.PathReferenceAttribute">
+            <summary>
+            Indicates that a parameter is a path to a file or a folder within a web project.
+            Path can be relative or absolute, starting from web root (~)
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcActionAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
+            is an MVC action. If applied to a method, the MVC action name is calculated
+            implicitly from the context. Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcAreaAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC area.
+            Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcControllerAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is
+            an MVC controller. If applied to a method, the MVC controller name is calculated
+            implicitly from the context. Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcMasterAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC Master. Use this attribute
+            for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcModelTypeAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC model type. Use this attribute
+            for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, Object)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcPartialViewAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC
+            partial view. If applied to a method, the MVC partial view name is calculated implicitly
+            from the context. Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Html.RenderPartialExtensions.RenderPartial(HtmlHelper, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcSupressViewErrorAttribute">
+            <summary>
+            ASP.NET MVC attribute. Allows disabling inspections for MVC views within a class or a method
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcDisplayTemplateAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC display template.
+            Use this attribute for custom wrappers similar to 
+            <c>System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcEditorTemplateAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC editor template.
+            Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcTemplateAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC template.
+            Use this attribute for custom wrappers similar to
+            <c>System.ComponentModel.DataAnnotations.UIHintAttribute(System.String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcViewAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
+            is an MVC view. If applied to a method, the MVC view name is calculated implicitly
+            from the context. Use this attribute for custom wrappers similar to
+            <c>System.Web.Mvc.Controller.View(Object)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AspMvcActionSelectorAttribute">
+            <summary>
+            ASP.NET MVC attribute. When applied to a parameter of an attribute,
+            indicates that this parameter is an MVC action name
+            </summary>
+            <example><code>
+            [ActionName("Foo")]
+            public ActionResult Login(string returnUrl) {
+              ViewBag.ReturnUrl = Url.Action("Foo"); // OK
+              return RedirectToAction("Bar"); // Error: Cannot resolve action
+            }
+            </code></example>
+        </member>
+        <member name="T:cqgis.ui.Annotations.RazorSectionAttribute">
+            <summary>
+            Razor attribute. Indicates that a parameter or a method is a Razor section.
+            Use this attribute for custom wrappers similar to 
+            <c>System.Web.WebPages.WebPageBase.RenderSection(String)</c>
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.CollectionAccessAttribute">
+            <summary>
+            Indicates how method invocation affects content of the collection
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.CollectionAccessType.None">
+            <summary>Method does not use or modify content of the collection</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.CollectionAccessType.Read">
+            <summary>Method only reads content of the collection but does not modify it</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.CollectionAccessType.ModifyExistingContent">
+            <summary>Method can change content of the collection but does not add new elements</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.CollectionAccessType.UpdatedContent">
+            <summary>Method can add new elements to the collection</summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AssertionMethodAttribute">
+            <summary>
+            Indicates that the marked method is assertion method, i.e. it halts control flow if
+            one of the conditions is satisfied. To set the condition, mark one of the parameters with 
+            <see cref="T:cqgis.ui.Annotations.AssertionConditionAttribute"/> attribute
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AssertionConditionAttribute">
+            <summary>
+            Indicates the condition parameter of the assertion method. The method itself should be
+            marked by <see cref="T:cqgis.ui.Annotations.AssertionMethodAttribute"/> attribute. The mandatory argument of
+            the attribute is the assertion type.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.AssertionConditionType">
+            <summary>
+            Specifies assertion type. If the assertion method argument satisfies the condition,
+            then the execution continues. Otherwise, execution is assumed to be halted
+            </summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.AssertionConditionType.IS_TRUE">
+            <summary>Marked parameter should be evaluated to true</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.AssertionConditionType.IS_FALSE">
+            <summary>Marked parameter should be evaluated to false</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.AssertionConditionType.IS_NULL">
+            <summary>Marked parameter should be evaluated to null value</summary>
+        </member>
+        <member name="F:cqgis.ui.Annotations.AssertionConditionType.IS_NOT_NULL">
+            <summary>Marked parameter should be evaluated to not null value</summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.TerminatesProgramAttribute">
+            <summary>
+            Indicates that the marked method unconditionally terminates control flow execution.
+            For example, it could unconditionally throw exception
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.LinqTunnelAttribute">
+            <summary>
+            Indicates that method is pure LINQ method, with postponed enumeration (like Enumerable.Select,
+            .Where). This annotation allows inference of [InstantHandle] annotation for parameters
+            of delegate type by analyzing LINQ method chains.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.NoEnumerationAttribute">
+            <summary>
+            Indicates that IEnumerable, passed as parameter, is not enumerated.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.RegexPatternAttribute">
+            <summary>
+            Indicates that parameter is regular expression pattern.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.XamlItemsControlAttribute">
+            <summary>
+            XAML attribute. Indicates the type that has <c>ItemsSource</c> property and should be
+            treated as <c>ItemsControl</c>-derived type, to enable inner  items <c>DataContext</c>
+            type resolve.
+            </summary>
+        </member>
+        <member name="T:cqgis.ui.Annotations.XamlItemBindingOfItemsControlAttribute">
+            <summary>
+            XAML attibute. Indicates the property of some <c>BindingBase</c>-derived type, that
+            is used to bind some item of <c>ItemsControl</c>-derived type. This annotation will
+            enable the <c>DataContext</c> type resolve for XAML bindings for such properties.
+            </summary>
+            <remarks>
+            Property should have the tree ancestor of the <c>ItemsControl</c> type or
+            marked with the <see cref="T:cqgis.ui.Annotations.XamlItemsControlAttribute"/> attribute.
+            </remarks>
+        </member>
+        <member name="T:cqgis.ui.Annotations.NoReorder">
+            <summary>
+            Prevents the Member Reordering feature from tossing members of the marked class.
+            </summary>
+            <remarks>
+            The attribute must be mentioned in your member reordering patterns.
+            </remarks>
+        </member>
+        <member name="T:cqgis.ui.Properties.Resources">
+            <summary>
+              一个强类型的资源类，用于查找本地化的字符串等。
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Properties.Resources.ResourceManager">
+            <summary>
+              返回此类使用的缓存的 ResourceManager 实例。
+            </summary>
+        </member>
+        <member name="P:cqgis.ui.Properties.Resources.Culture">
+            <summary>
+              使用此强类型资源类，为所有资源查找
+              重写当前线程的 CurrentUICulture 属性。
+            </summary>
+        </member>
+    </members>
+</doc>

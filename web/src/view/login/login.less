@@ -1,0 +1,113 @@
+.login{
+    padding-top: 5.7%;
+    width: 100%;
+    height: 100%;
+    background: -webkit-linear-gradient(132deg, #3bcdcd, #50a7fd); /* Safari 5.1 - 6.0 */
+    background: -o-linear-gradient(132deg, #3bcdcd, #50a7fd); /* Opera 11.1 - 12.0 */
+    background: -moz-linear-gradient(132deg, #3bcdcd, #50a7fd); /* Firefox 3.6 - 15 */
+    background: linear-gradient(132deg, #3bcdcd, #50a7fd); /* 标准的语法 */
+    z-index: 2;
+    &-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('../../assets/images/login-bg.jpg');
+        background-size: cover;
+        background-position: center;
+        opacity: .14;
+    }
+    &-header {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        color: #ffffff;
+        z-index: 2;
+        &-con {
+            margin-left: 20px;
+            line-height: 1;
+            h3 {
+                margin-top: 2px;
+                font-size: 38px;
+                font-weight: 500;
+                letter-spacing: 2px;
+            }
+            p {
+                margin-top: 14px;
+                font-size: 20px;
+                letter-spacing: 2.8px;
+            }
+        }
+    }
+    &-con {
+        position: relative;
+        display: flex;
+        margin: 75px auto 0;
+        height: 67.4%;
+        width: 64.5%;
+        z-index: 2;
+        background: linear-gradient(0, rgba(148, 235, 252, .6), rgba(255, 255, 255, .1));
+        &-header{
+            font-size: 16px;
+            font-weight: 300;
+            text-align: center;
+            padding: 30px 0;
+        }
+        aside {
+            width: 57.6%;
+            background: url('../../assets/images/login-img.png') center center no-repeat;
+            background-size: 86% auto;
+        }
+        main {
+            position: relative;
+            flex: 1;
+            background: #ffffff;
+            padding: 6.4%;
+            transition: all ease-in-out;
+            h4 {
+                color: #555555;
+                font-weight: 400;
+                font-size: 30px;
+                line-height: 1;
+            }
+        }
+    }
+    &-form {
+        margin-top: 65px
+    }
+    &-footer {
+        position: absolute;
+        bottom: 3%;
+        width: 100%;
+        color: #ffffff;
+        font-size: 18px;
+        text-align: center;
+        z-index: 3;
+    }
+}
+@media only screen and (max-width: 1068px) {
+    .login {
+        &-con {
+            margin-top: 30px;
+            aside { display: none;}
+        }
+        &-form {
+            margin-top: 60px;
+        }
+    }
+}
+@media only screen and (max-width: 1366px) {
+    .login {
+        padding-top: 50px;
+        &-con {
+            margin-top: 60px;
+            main {
+                padding: 40px 6.4%;
+            }
+        }
+        &-form {
+            margin-top: 50px;
+        }
+    }
+}

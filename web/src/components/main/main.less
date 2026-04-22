@@ -1,0 +1,125 @@
+.main{
+  .logo-con{
+    height: 64px;
+    padding: 10px;
+    img{
+      height: 34px;
+      width: auto;
+      display: block;
+      margin: 10px auto;
+      margin-left: 12px;
+    }
+  }
+  .header-con{
+    background: #fff;
+    padding: 0 20px;
+    width: 100%;
+  }
+  .main-layout-con{
+    height: 100%;
+    overflow: hidden;
+  }
+  .main-content-con{
+    height: ~"calc(100% - 60px)";
+    overflow: hidden;
+    background: #f2f2f2;
+  }
+  .tag-nav-wrapper{
+    padding: 0;
+    height:40px;
+    background:#F0F0F0;
+  }
+  .content-wrapper{
+    padding: 8px 0 0;
+    height: ~"calc(100% - 80px)";
+    overflow: auto;
+  }
+  .left-sider{ 
+    background: #1890FF;
+    .ivu-layout-sider-children{
+      overflow-y: scroll;
+      margin-right: -18px;
+    }
+  }
+}
+.ivu-menu-item > i{
+  margin-right: 12px !important;
+}
+.ivu-menu-item {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    display: block;
+    width: 4px;
+    height: 42px;
+    transform: translateY(-50%);
+    background: transparent;
+    transition: background .3s;
+  }
+  span {
+    font-size: 15px;
+  }
+}
+.main .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item-active, .main .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item-active:hover {
+  background: transparent !important;
+  &::before {
+    background: #ff7b9e;
+  }
+} 
+.main .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu .ivu-menu-item:hover:before {
+  background: #ff7b9e;
+}
+.ivu-menu-submenu > .ivu-menu > .ivu-menu-item > i {
+  margin-right: 8px !important;
+}
+// cy:修改左侧图标与标题的间距
+.ivu-menu-submenu-title > i, .ivu-menu-submenu-title span > i{
+  margin-right: 12px !important;
+}
+// cy:修改左侧导航箭头图标的位置
+.ivu-menu-vertical .ivu-menu-submenu-title-icon{
+  top: 36px !important;
+}
+.ivu-menu-submenu span {font-size: 15px;}
+// .ivu-menu-submenu .ivu-icon {
+//   position: relative;
+//   top: -1px;
+// }
+.ivu-menu-submenu .iconfont {
+  position: relative;
+  top: 1px;
+}
+.collased-menu-dropdown{
+  width: 100%;
+  margin: 0;
+  line-height: normal;
+  padding: 7px 0 6px 16px;
+  clear: both;
+  font-size: 12px !important;
+  white-space: nowrap;
+  list-style: none;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+  &:hover{
+    background: rgba(100, 100, 100, 0.1);
+  }
+  & * {
+    color: #515a6e;
+  }
+  .ivu-menu-item > i{
+    margin-right: 12px !important;
+  }
+  .ivu-menu-submenu > .ivu-menu > .ivu-menu-item > i {
+    margin-right: 8px !important;
+  }
+}
+
+.ivu-select-dropdown.ivu-dropdown-transfer{
+  max-height: 400px;
+}
+.side-menu-wrapper {
+  padding-right: 10px
+}

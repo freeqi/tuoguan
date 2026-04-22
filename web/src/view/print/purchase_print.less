@@ -1,0 +1,129 @@
+.infor_cont {
+        height: 100%;
+        overflow-y: scroll;
+    }
+    .spSider{
+        background-color: #fff;
+        position: relative;
+        .record{
+            width: 230px;
+            text-align: center;
+            margin-top: 18px;
+            float: right;
+            position: fixed;
+            right: 20px;
+            top: 140px;
+            .spH4{
+                margin-top: 20px;
+            }
+            ul{
+                border: 1px solid #D8D8D8;
+                border-radius: 4px;
+                padding: 10px;
+                max-height: 700px;
+                overflow-y: scroll;
+                margin-top: 5px;
+                font-size: 12px;
+                width: 205px;
+                float: right;
+                margin-right: 15px;
+                li{
+                    padding-left: 10px;
+                    height: 30px;
+                    line-height: 30px;
+                    border-bottom: 1px dashed #D8D8D8;
+                    text-align: left;
+                    cursor: pointer;
+                    span{
+                        color: red;
+                        margin-left: 8px;
+                    }
+                }
+                li:hover{
+                    background: #F0F0F0;
+                    border-radius:3px ;
+                }
+                .isActive{
+                    background: #F0F0F0 !important;
+                    border-radius:3px ;
+                }
+            }
+        }
+    }
+    
+	.table-bordered {
+		border-spacing: 0;
+		border-collapse: collapse;
+		background-color: transparent;
+		width: 100%;
+		max-width: 100%;
+		margin-bottom: 15px;
+		td,
+		th {
+			padding: 0;
+			text-align: left;
+		}
+		.spTd{
+            text-align: center;
+            font-size: 15px;
+        }
+	}
+	caption {
+		padding-top: 8px;
+		padding-bottom: 8px;
+		color: #777;
+		text-align: left;
+	}
+	.table-bordered>thead>tr>th,
+	.table-bordered>tbody>tr>th,
+	.table-bordered>tfoot>tr>th,
+	.table-bordered>thead>tr>td,
+	.table-bordered>tbody>tr>td,
+	.table-bordered>tfoot>tr>td {
+		padding: 8px;
+		line-height: 1.22857143;
+		vertical-align: top;
+		border: 1px solid #ddd;
+	}
+	.table-bordered>thead>tr>th {
+		vertical-align: bottom;
+		border-bottom: 2px solid #ddd;
+	}
+	.table-bordered>caption+thead>tr:first-child>th,
+	.table-bordered>colgroup+thead>tr:first-child>th,
+	.table-bordered>thead:first-child>tr:first-child>th,
+	.table-bordered>caption+thead>tr:first-child>td,
+	.table-bordered>colgroup+thead>tr:first-child>td,
+	.table>thead:first-child>tr:first-child>td {
+		border-top: 0;
+	}
+	.table-bordered>tbody+tbody {
+		border-top: 2px solid #ddd;
+	}
+	.table-bordered .table {
+		background-color: #fff;
+	}
+	.table-bordered {
+		border: 1px solid #ddd;
+	}
+	.table-bordered>thead>tr>th,
+	.table-bordered>thead>tr>td {
+		border-bottom-width: 2px;
+	}
+	.table-striped>tbody>tr:nth-child(odd) {
+		background-color: #f9f9f9;
+	}
+	.table-hover>tbody>tr:hover {
+		background-color: #f5f5f5;
+	}
+	.table-bordered col[class*="col-"] {
+		position: static;
+		display: table-column;
+		float: none;
+	}
+	.table-bordered td[class*="col-"],
+	.table-bordered th[class*="col-"] {
+		position: static;
+		display: table-cell;
+		float: none;
+	}

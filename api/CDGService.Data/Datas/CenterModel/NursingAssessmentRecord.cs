@@ -1,0 +1,91 @@
+using System;
+
+namespace CDGService.Data.Datas
+{
+    public class NursingAssessmentRecord
+    {
+        public string Id { get; set; }
+        public string PatientId { get; set; }
+        public string FeeType { get; set; }
+        public string FeeRemark { get; set; }
+        public string Allergy { get; set; }
+        public string Drug { get; set; }
+        public string AllergyOther { get; set; }
+        public string PreviousHistory { get; set; }
+        public decimal? HighBloodPressureA { get; set; }
+        public decimal? HighBloodPressureB { get; set; }
+        public decimal? HighBloodPressureC { get; set; }
+        public decimal? HighBloodPressureD { get; set; }
+        public decimal? DiabetesA { get; set; }
+        public decimal? DiabetesB { get; set; }
+        public decimal? DiabetesC { get; set; }
+        public decimal? DiabetesD { get; set; }
+        public string PreviousHistoryOther { get; set; }
+        public string FirstDialysisTime { get; set; }
+        public string DialysisFrequency { get; set; }
+        public string Consciousness { get; set; }
+        public string ConsciousnessRemark { get; set; }
+        public string Language { get; set; }
+        public string LanguageRemak { get; set; }
+        public string LimbsActivity { get; set; }
+        public string LimbsActivityType { get; set; }
+        public string Vision { get; set; }
+        public string VisionType { get; set; }
+        public string Hearing { get; set; }
+        public string HearingType { get; set; }
+        public string VascularAccess { get; set; }
+        public string VascularAccessRemark { get; set; }
+        public string BloodFlow { get; set; }
+        public string BloodFlowRemark { get; set; }
+        public string Infection { get; set; }
+        public string Errhysis { get; set; }
+        public string Hardening { get; set; }
+        public string Narrow { get; set; }
+        public string NeedleEye { get; set; }
+        public int? PunctureNumber { get; set; }
+        public string DialysisComplication { get; set; }
+        public string DialysisComplicationRemark { get; set; }
+        public string Sleep { get; set; }
+        public string SleepDrug { get; set; }
+        public string Defecation { get; set; }
+        public string ColostomyParts { get; set; }
+        public string DefecationRemark { get; set; }
+        public string Smoking { get; set; }
+        public string SmokeYears { get; set; }
+        public int? SmokeBranch { get; set; }
+        public string AlcoholAbuse { get; set; }
+        public string AlcoholAbuseYears { get; set; }
+        public decimal? AmountOfAlcohol { get; set; }
+        public string Ability { get; set; }
+        public string Compliance { get; set; }
+        public string UltrafiltrationVolume { get; set; }
+        public string IsUrineOutput { get; set; }
+        public decimal? UrineOutput { get; set; }
+        public decimal? WaterControl { get; set; }
+        public string WaterSwelling { get; set; }
+        public string AdverseEvents { get; set; }
+        public string AdverseEventsRemark { get; set; }
+        public string PsychicReaction { get; set; }
+        public string UnderstandDisease { get; set; }
+        public string Diseaseknowledge { get; set; }
+        public string PrivacyRequirements { get; set; }
+        public string PrivacyRequirementsRemark { get; set; }
+        public string SensoryDisorder { get; set; }
+        public decimal? TotalScore { get; set; }
+        public decimal? Painlevel { get; set; }
+        public string EvaluationMethods { get; set; }
+        public string Parts { get; set; }
+        public decimal? EvaluationScore { get; set; }
+        public string AssessNurse { get; set; }
+        public DateTime? AssessTime { get; set; }
+        public string Founder { get; set; }
+        public DateTime? FounderDate { get; set; }
+        public string IsFiled { get; set; }
+        public DateTime? FiledDate { get; set; }
+        public string Modifier { get; set; }
+        public DateTime? ModifierDate { get; set; }
+        public int? DataState { get; set; }
+        public string CenterId { get; set; }
+        public DateTime? CollectData { get; set; }
+    }
+}

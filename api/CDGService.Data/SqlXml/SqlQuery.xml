@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SqlQuery>
+  <ClassName Remark="类名称业务模块描述">
+    <SqlFunName Remark="查询，方法功能点描述">
+      <![CDATA[sql 查询 语句]]>
+    </SqlFunName>
+  </ClassName>
+
+  <MaterialsStatisticaManager Remark="报表汇总信息">
+    <SqlQueryArticleDistributionByDate Remark="时间段查询物品进销存数据">
+
+		SELECT  * from (
+		--冲销入库，正常入库
+		SELECT putinstoragedetail.Id as OutInBoundDetailId ,putinstoragedetail.CenterId,center.DialysisName, putinstorage.InStorageNo AS RuChuKuNo,putinstorage.Remark,putinstoragedetail.BatchNo , (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+		mir.MedicalItemType,putinstorage.InTypeId as ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		mir.Manufacturer,putinstorage.ModifierDate as putInstorageDate ,putinstoragedetail.InQty as ItemQty, putinstoragedetail.InPrice,putinstoragedetail.SalePrice,putinstoragedetail.SupplierId,suppliers.Name AS SupplierName ,mir.ApprovalNum,ct.Name as CatalogueName, mir.MayCharges,mir.NationItemCode,mir.WareHouseParentIds
+		FROM   PutInStorageBillDetails   as putinstoragedetail
+		INNER join PutInStorageBill  as putinstorage on putinstoragedetail.PutInStorageBillId=putinstorage.Id
+		left join MedicalItemRecords as  mir  on mir.Id=putinstoragedetail.MedicalItemId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = putinstorage.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=putinstoragedetail.SupplierId
+		where   putinstoragedetail.DataState=1  and putinstorage.AuditConditionId='9000bced463f42fbadef5abc554a5145'  and putinstorage.DataState=1  and putinstorage.DataState=1 AND (putinstorage.IsBegin!=1 OR putinstorage.IsBegin IS NULL)
+		UNION ALL --报废出库  其它出库
+		SELECT outbounddetail.Id as OutInBoundDetailId ,outbound.CenterId,center.DialysisName, outbound.OutboundNo AS RuChuKuNo,outbound.Remark,putstore.BatchNo,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+		mir.MedicalItemType,putoutflow.ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName,
+		mir.Manufacturer ,putoutflow.FounderDate as putInstorageDate,putoutflow.ItemQty,putstore.InPrice,putstore.SalePrice,putstore.SupplierId,suppliers.Name AS SupplierName,mir.ApprovalNum,ct.Name as CatalogueName, mir.MayCharges,mir.NationItemCode,mir.WareHouseParentIds
+		FROM  MaterialOutboundDetail   as outbounddetail
+		INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id and outbound.DataState=1
+		INNER JOIN PutOutFlow   as putoutflow ON outbounddetail.Id=putoutflow.ItemDetailId
+		INNER JOIN dbo.PutInStorageBatchNoDetails AS putstore ON putoutflow.PutOutId=putstore.Id
+		left join MedicalItemRecords as  mir  on mir.Id=outbounddetail.MaterialId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = outbound.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=putstore.SupplierId
+		WHERE   outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' and  outbounddetail.DataState=1 AND
+		(outbound.OutboundType='01f769807f9a4736be41db800606447e' or outbound.OutboundType='b8e6cbd359fb4816baf9e59206d4a5ef' OR  outbound.OutboundType='92ea5788bb044fb08fa71ce13dfefb34' )
+		UNION ALL --  --退货出库
+		SELECT returndetail.Id as OutInBoundDetailId,returndetail.CenterId ,center.DialysisName, returnrequest.ReturnNo AS RuChuKuNo,returnrequest.Remark,putstore.BatchNo, (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+		mir.MedicalItemType, putoutflow.ItemType, mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		mir.Manufacturer,putoutflow.FounderDate as putInstorageDate,putoutflow.ItemQty,putstore.InPrice,putstore.SalePrice,putstore.SupplierId,suppliers.Name AS SupplierName,mir.ApprovalNum,ct.Name as CatalogueName, mir.MayCharges,mir.NationItemCode,mir.WareHouseParentIds
+		FROM   ReturnDetails   as returndetail
+		INNER join ReturnRequest  as returnrequest on returndetail.ReturnId=returnrequest.Id
+		INNER JOIN PutOutFlow   as putoutflow ON returndetail.Id=putoutflow.ItemDetailId
+		INNER JOIN dbo.PutInStorageBatchNoDetails AS putstore ON putoutflow.PutOutId=putstore.Id
+		left join MedicalItemRecords as  mir  on mir.Id=returndetail.MedicalItemId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = returnrequest.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=putstore.SupplierId
+		WHERE   returnrequest.ReturnState=1 and putoutflow.ItemType='20e266be8d0b42679f621b91111e04ab' AND returndetail.DataState=1
+		UNION ALL --二级房
+		SELECT outbounddetail.Id as OutInBoundDetailId ,outbound.CenterId ,center.DialysisName, outbound.OutboundNo AS RuChuKuNo,outbound.Remark,batch.BatchNo ,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+		mir.MedicalItemType,batchdetail.OutInBoundType as ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		mir.Manufacturer,batchdetail.FounderDate as putInstorageDate, batchdetail.OutInBoundQty as ItemQty,batch.InPrice,batch.SalePrice,batch.SupplierId,suppliers.Name AS SupplierName,mir.ApprovalNum,ct.Name as CatalogueName, mir.MayCharges,mir.NationItemCode,mir.WareHouseParentIds
+		FROM MaterialOutboundDetail   as outbounddetail
+		INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id  and outbound.DataState=1
+		INNER JOIN BatchNoSecondaryStoreroomDetail   as batchdetail on outbounddetail.Id=batchdetail.OutInBoundDetailId and outbounddetail.DataState=1
+		INNER join BatchNoSecondaryStoreroom as  batch  on batchdetail.BatchNoSecondaryStoreroomId=batch.Id
+		left join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = outbound.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=batch.SupplierId
+		where  batchdetail.DataState=1 AND outbounddetail.DataState=1
+		)a where a.ItemType!='6DFE6BC24B8A43DD91577864338FD582'
+
+	</SqlQueryArticleDistributionByDate> 
+    <SqlGetItemsPrimaryAndSecondaryLibraryLibraryInventoryByDate Remark="时间段查询一级库,二级库库存数据">
+		select * from (select  batch.CenterId,center.DialysisName,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN  CASE mir.WareHouseIds WHEN '187b752e52414196b763f91fae53a825' THEN '有价卫材'
+		ELSE  '普通卫材' END  WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,mir.MedicalItemCode,mir.ApprovalNum,ct.Name as CatalogueName,
+		mir.MedicalItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		batch.BatchNo,mir.Manufacturer,batch.InPrice,batch.SalePrice,batch.InQty,batch.SupplierId,suppliers.Name AS SupplierName, mir.NationItemCode,mir.WareHouseParentIds
+		from PutInStorageBatchNoDetails   as batch
+		INNER join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=batch.SupplierId
+		where batch.DataState=1
+		UNION ALL
+		--二级库库存
+		select batch.CenterId,center.DialysisName, (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN CASE mir.WareHouseIds WHEN '187b752e52414196b763f91fae53a825' THEN '有价卫材'
+		ELSE  '普通卫材' END  WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,mir.MedicalItemCode,mir.ApprovalNum,ct.Name as CatalogueName,
+		mir.MedicalItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		batch.BatchNo,mir.Manufacturer,batch.InPrice,batch.SalePrice,batch.InQty,batch.SupplierId,suppliers.Name AS SupplierName, mir.NationItemCode,mir.WareHouseParentIds
+		from BatchNoSecondaryStoreroom   as batch
+		INNER join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+		LEFT JOIN dbo.Suppliers AS suppliers ON suppliers.Id=batch.SupplierId
+		where batch.DataState=1
+		) a where 1=1
+	</SqlGetItemsPrimaryAndSecondaryLibraryLibraryInventoryByDate>
+    <SqlGetPutInStorageBillInfoByDate Remark="时间段查询入库开单信息">
+      <!--<![CDATA[ SELECT TOP {0} *  FROM(
+      SELECT ROW_NUMBER() OVER (ORDER BY T1.Id) AS RowNumber,T1.IsBegin, T2.PurchaseNo,T1.[InStorageNo],T5.Name AS 'InTypeName',T1.InTypeId,T1.[GoodsNo],T1.[TotalQty],T6.Name AS 'AuditPerson',T4.Name AS 'AuditConditionName',
+      T1.[AuditDate],T1.[Advice],T1.[Remark],T3.Name AS 'FounderName',T1.[FounderDate],(select sum(InPrice*InQty) from PutInStorageBillDetails as a   where a.PutInStorageBillId=T1.Id  and a.DataState=1 )InPriceSum,(select sum(SalePrice*InQty) from PutInStorageBillDetails as a   where a.PutInStorageBillId=T1.Id  and a.DataState=1)SalePriceSum
+      FROM [dbo].[PutInStorageBill] AS T1
+      LEFT JOIN [dbo].PurchaseRequests AS T2 ON T2.Id = T1.PurchaseId
+      LEFT JOIN [dbo].Employees AS T3 ON T3.Id = T1.FounderId
+      LEFT JOIN [dbo].SystemDictionarys AS T4 ON T4.Id = T1.AuditConditionId
+      LEFT JOIN [dbo].SystemDictionarys AS T5 ON T5.Id = T1.InTypeId
+      LEFT JOIN [dbo].Employees AS T6 ON T6.Id = T1.AuditPerson
+      WHERE T1.DataState = 1 and T1.AuditConditionId='9000bced463f42fbadef5abc554a5145'  and (T1.IsBegin!=1 or T1.IsBegin is  null)   AND T1.[ModifierDate] BETWEEN '{1}' AND '{2}' and T1.CenterId='{3}'  
+      )newtable WHERE RowNumber > {0} * {4}  ORDER BY InStorageNo ASC
+      ]]>-->
+      <![CDATA[
+    	select * from (   SELECT center.DialysisName,t1.SettlementDate,t1.CenterId,t1.Id, T1.IsBegin, T2.PurchaseNo,T1.[InStorageNo],T5.Name AS 'InTypeName',T1.InTypeId,T1.[GoodsNo],T6.Name AS 'AuditPerson',T4.Name AS 'AuditConditionName',
+      T1.[AuditDate],T1.[Advice],T1.[Remark],T3.Name AS 'FounderName',T1.[FounderDate],T1.IsSettlement, t1.AuditConditionId,t1.[ModifierDate],t1.[DataState],t1.[IsChecked],t1.[CheckedDate],
+	  (select sum(InSumMoney) from PutInStorageBillDetails as a LEFT JOIN dbo.MedicalItemRecords  AS b   ON  a.MedicalItemId=b.Id   where a.PutInStorageBillId=T1.Id  and a.DataState=1 @sqlWhere )InPriceSum,
+	  (select sum(SalePrice*InQty) from PutInStorageBillDetails as a   LEFT JOIN dbo.MedicalItemRecords  AS b   ON  a.MedicalItemId=b.Id WHERE a.PutInStorageBillId=T1.Id  and a.DataState=1 @sqlWhere)SalePriceSum,
+	  (select sum(InQty) from PutInStorageBillDetails as a   LEFT JOIN dbo.MedicalItemRecords  AS b   ON  a.MedicalItemId=b.Id WHERE a.PutInStorageBillId=T1.Id  and a.DataState=1 @sqlWhere)TotalQty,
+    (  select sup.Name as 'SupplierName' from Suppliers as sup   where sup.Id = (  select top 1 SupplierId  from  PutInStorageBillDetails as tBill  where  T1.Id = tBill.PutInStorageBillId ))SupplierName,
+       (  select sup1.Id as 'SupplierId' from Suppliers as sup1   where sup1.Id = (  select top 1 SupplierId  from  PutInStorageBillDetails as tBill  where  T1.Id = tBill.PutInStorageBillId ))SupplierId
+      FROM [dbo].[PutInStorageBill] AS T1
+      LEFT JOIN [dbo].PurchaseRequests AS T2 ON T2.Id = T1.PurchaseId
+      LEFT JOIN [dbo].Employees AS T3 ON T3.Id = T1.FounderId
+      LEFT JOIN [dbo].SystemDictionarys AS T4 ON T4.Id = T1.AuditConditionId
+      LEFT JOIN [dbo].SystemDictionarys AS T5 ON T5.Id = T1.InTypeId
+      LEFT JOIN [dbo].Employees AS T6 ON T6.Id = T1.AuditPerson
+      LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = T1.CenterId
+      ) as T1
+      WHERE T1.DataState = 1 and T1.AuditConditionId='9000bced463f42fbadef5abc554a5145'  and (T1.IsBegin!=1 or T1.IsBegin is  null)  AND T1.[ModifierDate] BETWEEN '{0}' AND '{1}' @sql  ORDER BY InStorageNo ASC
+      ]]>
+    </SqlGetPutInStorageBillInfoByDate>
+    <SqlGetPutInStorageBillDetailsInfoByDate Remark="时间段查询入库开单明细信息">
+      <!--SELECT TOP {3} *  FROM(
+      SELECT ROW_NUMBER() OVER (ORDER BY T1.Id) AS RowNumber, T7.ReversalInBoundId,T7.InStorageNo,
+      (CASE T4.[MedicalItemType] WHEN 1 THEN '药品' WHEN 2 THEN '卫生耗材' WHEN 3 THEN '固定资产' WHEN 4 THEN '低值易耗' WHEN 5 THEN '诊疗项目' ELSE '其他' END) AS 'MedicalItemType',
+      T4.MedicalItemCode,T4.MedicalItemName,T1.[BatchNo],T2.Name AS 'SupplierName',T1.[ProductionDate],T1.[QualityDate],T1.[SalePrice],T1.[InPrice],
+      T1.[InQty],T1.[ProcurementPackage] as Specifications ,T3.SpeUnitCHS as UnitName ,T7.[Remark],T9.Name AS 'Founder',T1.[FounderDate],center.DialysisName,T7.InTypeId,syss.Name as InTypeName,audits.Name as AuditPerson,t7.AuditDate
+      FROM [dbo].[PutInStorageBillDetails] AS T1
+      LEFT JOIN [dbo].[Suppliers] AS T2 ON T2.Id = T1.SupplierId
+      LEFT JOIN [dbo].[MedicalUnits] AS T3 ON T3.Id = T1.ProcurementUnit
+      LEFT JOIN [dbo].[MedicalItemRecords] AS T4 ON T4.Id = T1.MedicalItemId
+      LEFT JOIN [dbo].[PurchaseDetails] AS T5 ON T5.Id = T1.PurchaseDetailsId
+      LEFT JOIN [dbo].PurchaseRequests AS T6 ON T6.Id = T5.ApplyId
+      LEFT JOIN [dbo].[PutInStorageBill] AS T7 ON T7.Id = T1.PutInStorageBillId
+      LEFT JOIN [dbo].Employees AS T9 ON T9.Id = T1.Founder
+      left join CenterDialysiss  as center on T1.CenterId=center.Id
+      LEFT JOIN [dbo].SystemDictionarys AS syss ON syss.Id = T7.InTypeId
+      LEFT JOIN [dbo].Employees AS audits ON audits.Id = T7.AuditPerson
+      WHERE T1.[DataState] = 1  AND T7.AuditConditionId='9000bced463f42fbadef5abc554a5145'  and T7.CenterId='{0}'  AND T7.[ModifierDate] BETWEEN '{1}' AND '{2}'
+      )newtable WHERE RowNumber > {3} * {4}  ORDER BY InStorageNo ASC-->
+      SELECT  T7.ReversalInBoundId,T7.InStorageNo,T4.MedicalItemType as [Type],T4.Brand,
+      (CASE T4.[MedicalItemType] WHEN 1 THEN '药品' WHEN 2 THEN '卫生耗材' WHEN 3 THEN '固定资产' WHEN 4 THEN '低值易耗' WHEN 5 THEN '诊疗项目' ELSE '其他' END) AS 'MedicalItemType',ct.Name as CatalogueName,
+      T4.MedicalItemCode,T4.MedicalItemName,T1.[BatchNo],T2.Name AS 'SupplierName',T1.[ProductionDate],T1.[QualityDate],T1.[SalePrice],T1.[InPrice],T5.IsSettlement,
+      T1.[InQty],T1.[InSumMoney] as CostAmount,T4.[ProcurementPackage] ,T4.[Specifications] ,T3.SpeUnitCHS as UnitName ,T7.[Remark],T9.Name AS 'Founder',T1.[FounderDate],center.DialysisName,T7.InTypeId,syss.Name as InTypeName,audits.Name as AuditPerson,t7.AuditDate,T4.Manufacturer,T4.ApprovalNum
+      FROM [dbo].[PutInStorageBillDetails] AS T1
+      INNER JOIN dbo.PutInStorageBill AS T5 ON T5.Id=T1.PutInStorageBillId
+      LEFT JOIN [dbo].[Suppliers] AS T2 ON T2.Id = T1.SupplierId
+      LEFT JOIN [dbo].[MedicalUnits] AS T3 ON T3.Id = T1.ProcurementUnit
+      LEFT JOIN [dbo].[MedicalItemRecords] AS T4 ON T4.Id = T1.MedicalItemId
+      left join CatalogueItems ct on T4.WareHouseIds = ct.Id
+      --LEFT JOIN [dbo].[PurchaseDetails] AS T5 ON T5.Id = T1.PurchaseDetailsId
+      --LEFT JOIN [dbo].PurchaseRequests AS T6 ON T6.Id = T5.ApplyId
+      LEFT JOIN [dbo].[PutInStorageBill] AS T7 ON T7.Id = T1.PutInStorageBillId
+      LEFT JOIN [dbo].Employees AS T9 ON T9.Id = T7.FounderId
+      left join CenterDialysiss  as center on T1.CenterId=center.Id
+      LEFT JOIN [dbo].SystemDictionarys AS syss ON syss.Id = T7.InTypeId
+      LEFT JOIN [dbo].Employees AS audits ON audits.Id = T7.AuditPerson
+      WHERE T1.[DataState] = 1  AND T7.AuditConditionId='9000bced463f42fbadef5abc554a5145' and (T5.IsBegin!=1 or T5.IsBegin is  null)
+      AND  T7.[ModifierDate] BETWEEN '{0}' AND '{1}'  @sqlWhere ORDER BY InStorageNo ASC
+    </SqlGetPutInStorageBillDetailsInfoByDate>
+    <SqlGetOtherOutboundByDate Remark="时间段查询其它出库信息">
+      <!--select TOP {3} * from (
+      select ROW_NUMBER() OVER (ORDER BY putout.Id ) AS RowNumber, outbound.OutboundNo,outdetail.UnitPrice,outdetail.SalesPrice,outdetail.CostTotalPrice,outdetail.MaterialQuantity,putout.ItemQty,emp.Name,outbound.FounderDate,emp1.Name as AuditorName,outbound.AuditDate,outbound.Remark
+      from PutOutFlow  as putout
+      left join MaterialOutboundDetail  as outdetail on  putout.ItemDetailId=outdetail.Id
+      left join MaterialOutbound  as outbound on  outdetail.MaterialOutboundId=outbound.Id
+      left join Employees as emp on emp.Id=outbound.Founder
+      left join Employees as emp1 on emp1.Id=outbound.Auditor
+      where outbound.OutboundType='b8e6cbd359fb4816baf9e59206d4a5ef'  and putout.ItemState=1  and outbound.CenterId='{0}' AND outbound.FounderDate BETWEEN '{1}' AND '{2}'   )newtable WHERE RowNumber > {3}*{4} ORDER BY OutboundNo ASC-->
+      select outbound.OutboundType,center.DialysisName,Outbound.CenterId,outbound.Id,outbound.OutboundNo,putstore.InPrice,putstore.SalePrice,outdetail.CostTotalPrice,outdetail.MaterialQuantity,putout.ItemQty,emp.Name,outbound.FounderDate,emp1.Name as AuditorName,outbound.AuditDate,outbound.Remark
+      FROM   MaterialOutboundDetail  as outdetail
+      INNER join MaterialOutbound  as outbound on  outdetail.MaterialOutboundId=outbound.Id and outbound.DataState=1
+      left join  PutOutFlow  as putout on  putout.ItemDetailId=outdetail.Id
+      INNER  JOIN  dbo.PutInStorageBatchNoDetails  AS putstore ON putout.PutOutId=putstore.Id
+      left join dbo.Employees as emp on emp.Id=outbound.Founder
+      left join dbo.Employees as emp1 on emp1.Id=outbound.Auditor
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      LEFT JOIN dbo.MedicalItemRecords AS mir ON mir.Id=outdetail.MaterialId
+      where (outbound.OutboundType='b8e6cbd359fb4816baf9e59206d4a5ef'  OR outbound.OutboundType='92ea5788bb044fb08fa71ce13dfefb34' ) AND outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' AND outdetail.DataState=1  AND  putout.FounderDate BETWEEN '{0}' AND '{1}'   @sqlWhere ORDER BY OutboundNo ASC
+    </SqlGetOtherOutboundByDate>
+    <SqlGetOtherOutboundDetailByDate Remark="时间段查询其它出库明细信息">
+      SELECT outbound.OutboundType,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',center.DialysisName, Outbound.CenterId,outdetail.id,outbound.OutboundNo,mir.MedicalItemName,mir.Brand,mir.Packaging,mir.Specifications,mir.IsSplited,unit1.SpeUnitCHS as PackageUnitName,mir.Manufacturer,unit2.SpeUnitCHS as SpecificationsUnitName,
+      mir.MedicalItemCode,mir.MedicalItemWorkCode,putstore.InPrice ,putstore.SalePrice,outdetail.CostTotalPrice,outdetail.MaterialQuantity,putout.ItemQty,outdetail.BatchNo,putstore.QualityDate
+      from  MaterialOutboundDetail  as outdetail
+      INNER join MaterialOutbound  as outbound on  outdetail.MaterialOutboundId=outbound.Id and outbound.DataState=1
+      INNER JOIN PutOutFlow  as putout on  putout.ItemDetailId=outdetail.Id
+      INNER  JOIN  dbo.PutInStorageBatchNoDetails  AS putstore ON putout.PutOutId=putstore.Id
+      left join MedicalItemRecords  as mir on outdetail.MaterialId=mir.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where (outbound.OutboundType='b8e6cbd359fb4816baf9e59206d4a5ef'  OR outbound.OutboundType='92ea5788bb044fb08fa71ce13dfefb34' ) AND outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145'  AND outdetail.DataState=1  AND putout.FounderDate BETWEEN '{0}' AND '{1}'  @sqlWhere  order by outbound.OutboundNo desc
+    </SqlGetOtherOutboundDetailByDate>
+    <SqlGetAccuratelyRecipientsByDate Remark="时间段查询领用出库信息">
+      select outbound.OutboundType,center.DialysisName, Outbound.CenterId, Outbound.Id,Outbound.OutboundNo ,batch.InPrice,batch.SalePrice,badetail.OutInBoundQty,emp.Name,Outbound.FounderDate,emp1.Name as AuditorName,Outbound.AuditDate,Outbound.OutboundReason,Outbound.Remark,mir.MedicalItemType
+      from BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MaterialOutboundDetail as OutboundDetail on badetail.OutInBoundDetailId=OutboundDetail.Id
+      left join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join Employees as emp on emp.Id=Outbound.Founder
+      left join Employees as emp1 on emp1.Id=Outbound.Auditor
+      left join MedicalItemRecords as mir on mir.Id=batch.MedicalItemId--卫生耗材
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where (outbound.OutboundType='0c0c27faec0e43d8aa9824925a340b81'  OR outbound.OutboundType='adb5fdd90a064b25ac080cb3d8d93989' )  AND outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' AND  OutboundDetail.DataState=1   @SqlWhere  AND badetail.FounderDate BETWEEN '{0}' AND '{1}'  order by Outbound.OutboundNo desc;
+    </SqlGetAccuratelyRecipientsByDate>
+    <SqlGetAccuratelyRecipientsDetailByDate Remark="时间段查询领用出库明细信息">
+      select outbound.OutboundType,center.DialysisName,Outbound.CenterId,Outbound.OutboundNo ,batch.InPrice,batch.SalePrice,badetail.OutInBoundQty,emp.Name,Outbound.FounderDate,emp1.Name as AuditorName,Outbound.AuditDate,Outbound.OutboundReason,Outbound.Remark,mir.MedicalItemType,mir.ApprovalNum,ct.Name as CatalogueName,
+      mir.IsSplited,mir.Specifications,mir.Packaging,mir.Manufacturer,batch.BatchNo,batch.QualityDate,OutboundDetail.MaterialQuantity,badetail.OutInBoundQty,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName
+      ,mir .MedicalItemCode,mir.MedicalItemWorkCode, mir.MedicalItemName,suppliers.Name AS SupplierName
+      from BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MaterialOutboundDetail as OutboundDetail on badetail.OutInBoundDetailId=OutboundDetail.Id
+      left join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join Employees as emp on emp.Id=Outbound.Founder
+      left join Employees as emp1 on emp1.Id=Outbound.Auditor
+      left join MedicalItemRecords as mir on mir.Id=batch.MedicalItemId--卫生耗材
+      left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      LEFT JOIN  dbo.Suppliers AS suppliers ON batch.SupplierId=suppliers.Id
+      where (outbound.OutboundType='0c0c27faec0e43d8aa9824925a340b81'  OR outbound.OutboundType='adb5fdd90a064b25ac080cb3d8d93989' )  AND outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' AND  OutboundDetail.DataState=1    and badetail.FounderDate BETWEEN '{0}' AND '{1}'   @SqlWhere     order by Outbound.OutboundNo desc;
+    </SqlGetAccuratelyRecipientsDetailByDate>
+    <SqlGetAccuratelyOutboundByDate Remark="时间段查询划价出库信息">
+      SELECT center.DialysisName,Outbound.CenterId, Outbound.Id,badetail.OutInBoundType,mir.MedicalItemType,badetail.OutInBoundDetailId,  Outbound.OutboundNo,Outbound.FounderDate as OutboundDate,badetail.OutInBoundQty,batch.SalePrice, batch.InPrice
+      from BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MaterialOutboundDetail as OutboundDetail on badetail.OutInBoundDetailId=OutboundDetail.Id and outbounddetail.DataState=1
+      left join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join MedicalItemRecords  as mir on mir.Id=OutboundDetail.MaterialId
+      LEFT join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where badetail.DataState=1 and   (badetail.OutInBoundType='a7d83b6d81104475b7ede8ea467bab1f' or  badetail.OutInBoundType='608399fe9db64480828b3f20c6815fd1'  )     and badetail.FounderDate BETWEEN '{0}' AND '{1}'  @SqlWhere  order by  OutboundDate ASC
+
+      <!--SELECT center.DialysisName,Outbound.CenterId,badetail.OutInBoundType,mir.MedicalItemType,badetail.OutInBoundDetailId,  Outbound.OutboundNo,Outbound.FounderDate as OutboundDate,badetail.OutInBoundQty,batch.SalePrice, batch.InPrice,
+      badetail.BatchNoSecondaryStoreroomId
+      from BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MaterialOutboundDetail as OutboundDetail on badetail.OutInBoundDetailId=OutboundDetail.Id and outbounddetail.DataState=1
+      left join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join MedicalItemRecords  as mir on mir.Id=OutboundDetail.MaterialId
+      LEFT join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where badetail.DataState=1 and   (badetail.OutInBoundType='a7d83b6d81104475b7ede8ea467bab1f' or  badetail.OutInBoundType='608399fe9db64480828b3f20c6815fd1'  )     and badetail.FounderDate BETWEEN '{0}' AND '{1}'  @SqlWhere
+      GROUP BY  badetail.OutInBoundType,mir.MedicalItemType,badetail.OutInBoundDetailId,  Outbound.OutboundNo,Outbound.FounderDate ,badetail.OutInBoundQty,batch.SalePrice, batch.InPrice,badetail.BatchNoSecondaryStoreroomId,center.DialysisName,Outbound.CenterId-->
+
+      <!--select  top {3} * from (select ROW_NUMBER() OVER (ORDER BY Outbound.FounderDate ) AS RowNumber, badetail.OutInBoundType,mir.MedicalItemType,badetail.OutInBoundDetailId,  Outbound.OutboundNo,Outbound.FounderDate as OutboundDate,badetail.OutInBoundQty,batch.SalePrice, batch.InPrice
+      from BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MaterialOutboundDetail as OutboundDetail on badetail.OutInBoundDetailId=OutboundDetail.Id and outbounddetail.DataState=1
+      left join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join MedicalItemRecords  as mir on mir.Id=OutboundDetail.MaterialId
+      where badetail.DataState=1 and   (badetail.OutInBoundType='a7d83b6d81104475b7ede8ea467bab1f' or  badetail.OutInBoundType='608399fe9db64480828b3f20c6815fd1'  )    and badetail.CenterId='{0}' and badetail.FounderDate BETWEEN '{1}' AND '{2}'   )newtable WHERE RowNumber > {3}*{4} ORDER BY OutboundDate ASC-->-->
+    </SqlGetAccuratelyOutboundByDate>
+    <SqlGetAccuratelyOutboundDetailByDate Remark="时间段查询划价出库明细信息">
+      select * from (
+      select presDetail.MaterialId,presDetail.Id AS presDetailId, center.DialysisName,presDetail.CenterId, pres.PrescriptionNo,Outbound.OutboundType,OutboundDetail.Id,OutboundDetail.MaterialOutboundId,p.Name as PatientName, Outbound.OutboundNo,Outbound.FounderDate as OutboundDate,
+      (presDetail .MaterialTotal -(SELECT ISNULL(SUM(a.ReturnWarehouseQty),0) FROM dbo.PrescriptionDetailRefund AS a WHERE a.PrescriptionDetailId=presDetail.Id AND a.RefundStatus=2  AND  a.ReturnWarehouseId IS NULL AND a.DataState=1 and a.RefundType !=2))AS  MaterialTotal,presDetail.UnitPrice,pres.ChargeDate,mir.MedicalItemType ,
+      mir.MedicalItemName,mir.MedicalItemCode,mir.GoodsName,mir.Specifications,mir.Packaging,unit1.SpeUnitCHS as PackageUnitName,mir.ApprovalNum,ct.Name as CatalogueName,
+      unit2.SpeUnitCHS as SpecificationsUnitName,mir.IsSplited,mir.Manufacturer,presDetail.ReceivablePrice,(CASE presDetail.DiscountStatus WHEN 1 THEN presDetail.DiscountPrice ELSE presDetail.UnitPrice END) AS 'SalePrices'
+      from  PrescriptionDetail as presDetail
+      left join Prescription   as pres on  presDetail.PrescriptionId=pres.Id
+      left join Patient  as p on pres.PatientId=p.Id
+      left join MaterialOutboundDetail as OutboundDetail on presDetail.OutboundId=OutboundDetail.Id
+      INNER join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join MedicalItemRecords  as mir  on presDetail.MaterialId=mir.Id
+      left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where presDetail.ChargeStatus=2 and presDetail.OutboundStatus=2 and presDetail.DataState=1
+      UNION ALL
+      select presDetail.MaterialId,presDetail.Id AS presDetailId,center.DialysisName,refund.CenterId, pres.PrescriptionNo,Outbound.OutboundType,OutboundDetail.Id,OutboundDetail.MaterialOutboundId,p.Name as PatientName, Outbound.OutboundNo,Outbound.FounderDate as OutboundDate, refund.ReturnWarehouseQty as  MaterialTotal,presDetail.UnitPrice,pres.ChargeDate,mir.MedicalItemType  ,
+      mir.MedicalItemName,mir.MedicalItemCode,mir.GoodsName,mir.Specifications,mir.Packaging,unit1.SpeUnitCHS as PackageUnitName,mir.ApprovalNum,ct.Name as CatalogueName,
+      unit2.SpeUnitCHS as SpecificationsUnitName,mir.IsSplited,mir.Manufacturer,presDetail.ReceivablePrice,(CASE presDetail.DiscountStatus WHEN 1 THEN presDetail.DiscountPrice ELSE presDetail.UnitPrice END) AS 'SalePrices'
+      from PrescriptionDetailRefund  as refund
+      left join PrescriptionDetail  as presDetail  on  refund.PrescriptionDetailId=presDetail.Id
+      left join Prescription   as pres on  presDetail.PrescriptionId=pres.Id
+      left join Patient  as p on pres.PatientId=p.Id
+      left join MaterialOutboundDetail  as OutboundDetail  on refund.ReturnWarehouseId=OutboundDetail.Id
+      inner join MaterialOutbound as Outbound  on Outbound.Id=OutboundDetail.MaterialOutboundId and outbound.DataState=1
+      left join MedicalItemRecords  as mir  on presDetail.MaterialId=mir.Id
+      left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      where RefundStatus=2 and presDetail.OutboundStatus=2 and   refund.ReturnWarehouseId IS NOT NULL) newtable  where 1=1  @SqlWhere order by OutboundDate ASC
+    </SqlGetAccuratelyOutboundDetailByDate>
+    <SqlGetBatchNoSecondaryStoreroom Remark="查询物品价格">
+      <!--select batch.*,badetail.OutInBoundDetailId ,supplier.Name as  SupplierName from    BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join Suppliers as supplier on batch.SupplierId=supplier.Id
+      where (badetail.OutInBoundType='a7d83b6d81104475b7ede8ea467bab1f' or badetail.OutInBoundType='608399fe9db64480828b3f20c6815fd1')-->
+      
+      select batch.*,badetail.OutInBoundDetailId ,supplier.Name as  SupplierName,badetail.OutInBoundQty from    BatchNoSecondaryStoreroomDetail as badetail
+      left join BatchNoSecondaryStoreroom  as batch on badetail.BatchNoSecondaryStoreroomId=batch.Id
+      INNER join Suppliers as supplier on batch.SupplierId=supplier.Id
+      INNER JOIN  dbo.MedicalItemRecords AS  mir ON batch.MedicalItemId=mir.Id
+      where (badetail.OutInBoundType='a7d83b6d81104475b7ede8ea467bab1f' or badetail.OutInBoundType='608399fe9db64480828b3f20c6815fd1')
+    </SqlGetBatchNoSecondaryStoreroom>
+    <SqlGetRecentValidityStatistics Remark="近效期统计">
+      select * from (select center.DialysisName,mir.Id,putinstorage.CenterId,mir.Brand,(CASE mir.[MedicalItemType] WHEN 1 THEN '药品' WHEN 2 THEN '卫生耗材' WHEN 3 THEN '固定资产' WHEN 4 THEN '低值易耗' WHEN 5 THEN '诊疗项目' ELSE '其他' END) AS ItemTypeName, mir.MedicalItemType,
+      mir.MedicalItemName,mir.MedicalItemCode,mir.GoodsName,mir.Specifications,mir.Packaging,unit1.SpeUnitCHS as PackageUnitName,
+      unit2.SpeUnitCHS as SpecificationsUnitName,mir.IsSplited,mir.Manufacturer,putinstorage.BatchNo,putinstorage.QualityDate,putinstorage.InQty,mir.MinInventory,supplier.Name as SupplierName ,putinstorage.InPrice,putinstorage.SalePrice,putinstorage.SupplierId
+      from PutInStorageBatchNoDetails  as putinstorage
+      left  join MedicalItemRecords  as  mir  on  putinstorage.MedicalItemId=mir.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join Suppliers as supplier on putinstorage.SupplierId=supplier.Id
+      left join CenterDialysiss  as center on putinstorage.CenterId=center.Id  where putinstorage.InQty>0
+      UNION ALL
+      select  center.DialysisName,mir.Id,batchNo.CenterId,mir.Brand,(CASE mir.[MedicalItemType] WHEN 1 THEN '药品' WHEN 2 THEN '卫生耗材' WHEN 3 THEN '固定资产' WHEN 4 THEN '低值易耗' WHEN 5 THEN '诊疗项目' ELSE '其他' END) AS ItemTypeName, mir.MedicalItemType,
+      mir.MedicalItemName,mir.MedicalItemCode,mir.GoodsName,mir.Specifications,mir.Packaging,unit1.SpeUnitCHS as PackageUnitName,
+      unit2.SpeUnitCHS as SpecificationsUnitName,mir.IsSplited,mir.Manufacturer,batchNo.BatchNo,batchNo.QualityDate,batchNo.InQty,mir.MinInventory,supplier.Name as SupplierName,batchNo.InPrice,batchNo.SalePrice,batchNo.SupplierId
+      from BatchNoSecondaryStoreroom  as batchNo
+      left  join MedicalItemRecords  as  mir  on  batchNo.MedicalItemId=mir.Id
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join Suppliers as supplier on batchNo.SupplierId=supplier.Id
+      left join CenterDialysiss  as center on batchNo.CenterId=center.Id  where batchNo.InQty>0)as a where MedicalItemType in(1,2)
+    </SqlGetRecentValidityStatistics>
+    
+   <!--物资统计-->
+      <SqlGetLowInventoryWarning Remark="低库存预警统计">
+        <!--select * from (  select mir.MedicalItemType,  (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS ItemTypeName,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,mir.Manufacturer,mir.DataState,mir.MinInventory,mir.GoodsName,
+        (select sum(InQty) from(select sum(InQty)as InQty from PutInStorageBatchNoDetails where MedicalItemId=mir.Id and CenterId=@CenterId
+        UNION ALL
+        select sum(InQty)  as InQty from BatchNoSecondaryStoreroom where MedicalItemId=mir.Id and CenterId=@CenterId) as Inventory) AS Inventory
+        from MedicalItemRecords  as mir
+        left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+        left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+        )newtable  where  DataState=1  and MedicalItemType in(1,2) and MinInventory>=Inventory and Inventory is not null-->
+        --一级库库存
+        SELECT *  FROM
+        (SELECT batch.CenterId,center.DialysisName,batch.MedicalItemId,mir.MedicalItemType ,batch.InQty, (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS ItemTypeName,mir.MedicalItemName,
+        mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS AS PackageUnitName,unit2.SpeUnitCHS AS SpecificationsUnitName ,mir.Manufacturer,mir.DataState,mir.MinInventory,mir.GoodsName
+        FROM PutInStorageBatchNoDetails   AS batch
+        INNER JOIN MedicalItemRecords AS  mir  ON mir.Id=batch.MedicalItemId
+        LEFT JOIN MedicalUnits  AS unit1  ON mir.PackageUnit=unit1.Id
+        LEFT JOIN MedicalUnits  AS unit2  ON mir.SpecificationsUnit=unit2.Id
+        LEFT JOIN dbo.Suppliers  AS supplier ON supplier.Id=batch.SupplierId
+        LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+        WHERE batch.DataState=1 
+        UNION ALL
+        --二级库库存
+        SELECT  batch.CenterId,center.DialysisName,batch.MedicalItemId,mir.MedicalItemType,batch.InQty,  (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS ItemTypeName,mir.MedicalItemName,
+        mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS AS PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,mir.Manufacturer,mir.DataState,mir.MinInventory,mir.GoodsName
+        from BatchNoSecondaryStoreroom   as batch
+        inner join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+        left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+        left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+        LEFT JOIN dbo.Suppliers  AS supplier ON supplier.Id=batch.SupplierId
+        LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+        where batch.DataState=1 
+        ) a where 1=1
+      </SqlGetLowInventoryWarning>
+    <SqlGetSupplierPutInStorageStatistics Remark="供应商入库统计">
+      select center.DialysisName,mir.Id, putdetail.SupplierId,putdetail.BatchNo,putdetail.InQty,putdetail.InPrice,putdetail.SalePrice,putinstorage.CenterId
+      ,unit.SpeUnitCHS as UnitName,mir.ProcurementPackage,supplier.Name as SupplierName,mir.Manufacturer,
+      (CASE mir.[MedicalItemType] WHEN 1 THEN '药品' WHEN 2 THEN '卫生耗材' WHEN 3 THEN '固定资产' WHEN 4 THEN '低值易耗' WHEN 5 THEN '诊疗项目' ELSE '其他' END) AS ItemTypeName,
+      mir.MedicalItemType,mir.GoodsName,mir.Specifications,mir.Brand,mir.MedicalItemName
+      from PutInStorageBillDetails  as putdetail
+      left join Suppliers as supplier on putdetail.SupplierId=supplier.Id
+      left join PutInStorageBill  as putinstorage on  putdetail.PutInStorageBillId=putinstorage.Id
+      left  join MedicalItemRecords  as  mir  on  putdetail.MedicalItemId=mir.Id
+      left join MedicalUnits  as unit  on mir.ProcurementUnit=unit.Id
+      LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = putdetail.CenterId
+      where putdetail.DataState=1 and  putinstorage.AuditConditionId='9000bced463f42fbadef5abc554a5145' AND  (putinstorage.IsBegin !=1 OR putinstorage.IsBegin IS NULL) AND  putdetail.DataState=1  and putinstorage.ModifierDate BETWEEN '{0}' AND '{1}'
+    </SqlGetSupplierPutInStorageStatistics>
+    <SqlGetGoodsInStockdInfo Remark="获取物品库存信息">
+		--一级库库存
+		select * from (     select batch.Id, batch.CenterId,center.DialysisName, (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,mir.MedicalItemCode,
+		mir.MedicalItemType,mir.MedicalItemName,mir.NationItemCode as hiCenterCode,mir.IsSplited,mir.Packaging,
+		(CASE mir.MedicalItemType WHEN '1' THEN
+		(  select  top 1   yp.YPGG+'*'+yp.ZXBZSL+ yp.ZXZJDW+'/'+yp.ZXBZDW from  SI_YP  as yp   where   yp.ylmlbm = mir.NationItemCode  and  yp.BBHMC = ( select MAX(BBHMC) from SI_YP  where SI_YP.YLMLBM =yp.YLMLBM)) else '' end ) as YPGG,
+		mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		batch.BatchNo,mir.Manufacturer,batch.InPrice,batch.SalePrice,batch.InQty,
+		batch.QualityDate,batch.ProductionDate,supplier.Name AS supplierName,mir.MinInventory,batch.SupplierId,(SELECT TOP 1 YPML.hilist_pric_uplmt_amt a FROM SI_CheckPriceInfo As YPML WHERE  YPML.hilist_code = mir.NationItemCode and  (YPML.hilist_lmtpric_type = '901' or YPML.hilist_lmtpric_type = '902' or YPML.hilist_lmtpric_type is null) and YPML.enddate is null ORDER BY YPML.enddate DESC ) as SocialSecurityPrice
+
+
+		from PutInStorageBatchNoDetails   as batch
+		inner JOIN MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.Suppliers  AS supplier ON supplier.Id=batch.SupplierId
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+		-- left join dbo.SI_YPML As YPML on YPML.YPLSH = mir.HiCenterCode
+		where batch.DataState=1
+		UNION ALL
+		--二级库库存
+		select batch.Id, batch.CenterId,center.DialysisName, (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,mir.MedicalItemCode as hiCenterCode,
+		mir.MedicalItemType,mir.MedicalItemName,mir.NationItemCode,mir.IsSplited,mir.Packaging,
+		(CASE mir.MedicalItemType WHEN '1' THEN
+		(  select  top 1   yp.YPGG+'*'+yp.ZXBZSL+ yp.ZXZJDW+'/'+yp.ZXBZDW from  SI_YP  as yp   where   yp.ylmlbm = mir.NationItemCode  and  yp.BBHMC = ( select MAX(BBHMC) from SI_YP  where SI_YP.YLMLBM =yp.YLMLBM)) else '' end ) as YPGG,
+		mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		batch.BatchNo,mir.Manufacturer,batch.InPrice,batch.SalePrice,batch.InQty,
+		batch.QualityDate,batch.ProductionDate,supplier.Name AS supplierName,mir.MinInventory,batch.SupplierId,(SELECT TOP 1 YPML.hilist_pric_uplmt_amt a FROM SI_CheckPriceInfo As YPML WHERE  YPML.hilist_code = mir.NationItemCode and  (YPML.hilist_lmtpric_type = '901' or YPML.hilist_lmtpric_type = '902' or YPML.hilist_lmtpric_type is null ) and YPML.enddate is null ORDER BY YPML.enddate DESC)  as SocialSecurityPrice
+		from BatchNoSecondaryStoreroom   as batch
+		inner join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.Suppliers  AS supplier ON supplier.Id=batch.SupplierId
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+		-- left join dbo.SI_YPML As YPML on YPML.YPLSH = mir.HiCenterCode
+		where batch.DataState=1 ) as a
+		where  1=1 and  InQty >0
+	</SqlGetGoodsInStockdInfo>
+    <SqlGetItemUsageStatistics Remark="物品用量统计">
+		SELECT  outbound.CenterId,center.DialysisName,  batchdetail.OutInBoundDetailId ,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+		mir.MedicalItemType,batchdetail.OutInBoundType as ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+		mir.Manufacturer,batchdetail.FounderDate as putInstorageDate, batchdetail.OutInBoundQty as InQty,batch.InPrice,batch.SalePrice,batch.BatchNo, CONVERT(varchar(7), outbound.AuditDate , 120 ) as outDateMonty,outbound.AuditDate as outDate
+
+		FROM MaterialOutboundDetail   as outbounddetail
+		INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id  and outbound.DataState=1
+		INNER JOIN BatchNoSecondaryStoreroomDetail   as batchdetail on outbounddetail.Id=batchdetail.OutInBoundDetailId and outbounddetail.DataState=1
+		left join BatchNoSecondaryStoreroom as  batch  on batchdetail.BatchNoSecondaryStoreroomId=batch.Id
+		left join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+		left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+		left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+		LEFT JOIN dbo.CenterDialysiss AS center ON center.Id = batch.CenterId
+		--销售 ，退货退费，领用
+		WHERE  outbound.OutboundType IN ('a7d83b6d81104475b7ede8ea467bab1f','608399fe9db64480828b3f20c6815fd1','0c0c27faec0e43d8aa9824925a340b81')AND batchdetail.FounderDate BETWEEN '{0}' AND '{1}'
+	
+	</SqlGetItemUsageStatistics>
+    <SqlGetpPescriptionsByDate Remark="查询处方明细信息">
+      <!--select  presDetail.MaterialId,presDetail.OutboundId,presDetail.CenterId,(CASE presDetail.DiscountStatus WHEN 1 THEN presDetail.DiscountPrice ELSE presDetail.UnitPrice END) AS 'SalePrice',
+      (presDetail .MaterialTotal -(SELECT ISNULL(SUM(a.ReturnWarehouseQty),0) FROM dbo.PrescriptionDetailRefund AS a WHERE a.PrescriptionDetailId=presDetail.Id AND  a.ReturnWarehouseId IS NULL  AND a.RefundStatus=2))AS TotalQty
+      from  PrescriptionDetail as presDetail LEFT JOIN dbo.MedicalItemRecords  AS  mir  ON presDetail.MaterialId=mir.Id    WHERE presDetail. OutboundStatus=2 and presDetail.ChargeStatus=2 and presDetail.DataState=1-->
+		select   presDetail.CenterId, presDetail.Id,presDetail.OutboundId,presDetail.MaterialId,(CASE presDetail.DiscountStatus WHEN 1 THEN presDetail.DiscountPrice ELSE presDetail.UnitPrice END) AS 'SalePrice',
+		(presDetail .MaterialTotal -(SELECT ISNULL(SUM(a.ReturnWarehouseQty),0) FROM dbo.PrescriptionDetailRefund AS a WHERE a.PrescriptionDetailId=presDetail.Id AND  a.ReturnWarehouseId IS NULL
+		AND a.RefundStatus=2 AND a.DataState=1 ))AS TotalQty ,mir.ApprovalNum,ct.Name as CatalogueName,mir.MedicalItemType,mir.MayCharges,mir.WareHouseParentIds
+		from  PrescriptionDetail as presDetail
+		INNER JOIN dbo.MedicalItemRecords AS mir   ON presDetail.MaterialId=mir.Id
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		WHERE presDetail. OutboundStatus=2 and presDetail.ChargeStatus=2 and presDetail.DataState=1
+	</SqlGetpPescriptionsByDate>
+
+    <SqlGetpPescriptionsRefundByDate Remark="查询退费明细信息">
+		SELECT  presDetail.MaterialId,presDetail.OutboundId,presDetail.CenterId,refund.ReturnWarehouseId,(CASE presDetail.DiscountStatus WHEN 1 THEN presDetail.DiscountPrice ELSE presDetail.UnitPrice END) AS 'SalePrice',
+		refund.ReturnWarehouseQty AS TotalQty ,mir.ApprovalNum ,ct.Name as CatalogueName,mir.MedicalItemType,mir.MayCharges ,WareHouseParentIds FROM  dbo.PrescriptionDetailRefund  AS refund LEFT JOIN dbo.PrescriptionDetail  AS presDetail  ON presDetail.Id = refund.PrescriptionDetailId
+		LEFT JOIN dbo.MedicalItemRecords  AS  mir  ON presDetail.MaterialId=mir.Id
+		left join CatalogueItems ct on mir.WareHouseIds = ct.Id
+		WHERE  presDetail.DataState=1   AND refund.ReturnWarehouseId IS NOT NULL AND refund.RefundStatus=2 AND refund.DataState=1
+	</SqlGetpPescriptionsRefundByDate>
+    <SqlGetHighOverstockStatistics Remark="高积压库存统计">
+      select * from (  select mir.MedicalItemType,  (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS ItemTypeName,
+      mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,mir.Manufacturer,mir.DataState,mir.MinInventory,mir.GoodsName,mir.Id,
+      (select sum(InQty) from(select sum(InQty)as InQty from PutInStorageBatchNoDetails where MedicalItemId=mir.Id
+      UNION ALL
+      select sum(InQty)  as InQty from BatchNoSecondaryStoreroom where MedicalItemId=mir.Id ) as Inventory) AS Inventory
+      from MedicalItemRecords  as mir
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      )newtable  where  DataState=1  and MedicalItemType in(1,2)  and Inventory is not NULL AND Inventory>200
+    </SqlGetHighOverstockStatistics>
+    <SqlGetReturnStatisticsByDate Remark="时间段查询退货出库">
+      SELECT returnrequest.IsSettlement,returnrequest.SettlementDate,returnrequest.IsChecked,returnrequest.CheckedDate,returnrequest.Id,center.DialysisName,returnrequest.CenterId,mir.GoodsName,mir.Brand,supplier.Name AS SupplierName,returnrequest.ReturnNo as OutboundNo,emp.Name,returnrequest.FounderDate,returnrequest.GroupAuditor as AuditorName,returnrequest.GroupAuditDate as AuditDate,returnrequest.Remark,putstore.BatchNo,putstore.QualityDate,mir.MedicalItemCode,mir.MedicalItemWorkCode ,
+      (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+      mir.MedicalItemType, putoutflow.ItemType, mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+      mir.Manufacturer,putoutflow.FounderDate as putInstorageDate,putoutflow.ItemQty,putstore.InPrice,putstore.SalePrice,emp1.Name AS ReturnAuditor,returnrequest.ReturnDate
+      FROM   ReturnDetails   as returndetail
+      INNER join ReturnRequest  as returnrequest on returndetail.ReturnId=returnrequest.Id
+      INNER JOIN PutOutFlow   as putoutflow ON returndetail.Id=putoutflow.ItemDetailId
+      INNER JOIN dbo.PutInStorageBatchNoDetails AS putstore ON putoutflow.PutOutId=putstore.Id
+      left join MedicalItemRecords as  mir  on mir.Id=returndetail.MedicalItemId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join dbo.Employees as emp on emp.Id=returnrequest.Founder
+      left join Employees as emp1 on emp1.Id=returnrequest.ReturnAuditor
+      LEFT JOIN dbo.Suppliers AS supplier ON  returnrequest.SupplierId=supplier.Id
+      left join CenterDialysiss  as center on returnrequest.CenterId=center.Id
+      WHERE    returnrequest.ReturnState=1 and putoutflow.ItemType='20e266be8d0b42679f621b91111e04ab'  and returndetail.DataState =1  @SqlWhere ORDER BY returnrequest.ReturnNo ASC
+    </SqlGetReturnStatisticsByDate>
+    <SqlGetScrapOutboundStatisticsByDate Remark="时间段查询报废出库">
+      SELECT * FROM (
+      SELECT outbound.Id, center.DialysisName,outbound.CenterId,outbound.OutboundNo,emp.Name,outbound.FounderDate,emp1.Name as AuditorName,outbound.AuditDate,outbound.Remark,putoutflow.ItemDetailId as OutInBoundDetailId ,putstore.BatchNo,mir.MedicalItemCode,mir.MedicalItemWorkCode,putstore.QualityDate,putoutflow.FounderDate as putInstorageDate,
+      (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,wc.Name AS WareHouseName,
+      mir.MedicalItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName,
+      mir.Manufacturer ,putoutflow.ItemQty,putstore.InPrice,putstore.SalePrice ,suppliers.Name AS SupplierName
+      FROM  MaterialOutboundDetail   as outbounddetail
+      INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id and outbound.DataState=1
+      INNER JOIN PutOutFlow   as putoutflow ON outbounddetail.Id=putoutflow.ItemDetailId
+      INNER JOIN dbo.PutInStorageBatchNoDetails AS putstore ON putoutflow.PutOutId=putstore.Id
+      left join MedicalItemRecords as  mir  on mir.Id=outbounddetail.MaterialId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join Employees as emp on emp.Id=outbound.Founder
+      left join Employees as emp1 on emp1.Id=outbound.Auditor
+      LEFT JOIN dbo.MaterialTypeWarehouseConfig AS mtwc ON  mtwc.MaterialTypeId = mir.WareHouseIds--物品库房关联信息
+      LEFT JOIN dbo.WareHouseCatalog AS wc ON  wc.Id = mtwc.WarehouseTypeId--仓库名
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      LEFT JOIN  dbo.Suppliers AS suppliers ON putstore.SupplierId=suppliers.Id
+      WHERE   outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' and outbound.OutboundType='01f769807f9a4736be41db800606447e' AND  OutboundDetail.DataState=1
+      UNION ALL --
+      SELECT outbound.Id, center.DialysisName,outbound.CenterId,outbound.OutboundNo,emp.Name,outbound.FounderDate,emp1.Name as AuditorName,outbound.AuditDate,outbound.Remark,batchdetail.OutInBoundDetailId ,batch.BatchNo,mir.MedicalItemCode,mir.MedicalItemWorkCode,batch.QualityDate,batchdetail.FounderDate as putInstorageDate,
+      (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,warehouse.Name AS WareHouseName,
+      mir.MedicalItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+      mir.Manufacturer, batchdetail.OutInBoundQty as ItemQty,batch.InPrice,batch.SalePrice,suppliers.Name AS SupplierName
+      FROM MaterialOutboundDetail   as outbounddetail
+      INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id  and outbound.DataState=1
+      INNER JOIN BatchNoSecondaryStoreroomDetail   as batchdetail on outbounddetail.Id=batchdetail.OutInBoundDetailId
+      INNER join BatchNoSecondaryStoreroom as  batch  on batchdetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join Employees as emp on emp.Id=outbound.Founder
+      left join Employees as emp1 on emp1.Id=outbound.Auditor
+      LEFT JOIN dbo.WareHouseCatalog AS warehouse ON batch.WarehouseId=warehouse.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      LEFT JOIN  dbo.Suppliers AS suppliers ON batch.SupplierId=suppliers.Id
+      WHERE  outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145'AND outbound.OutboundType='01f769807f9a4736be41db800606447e' AND  OutboundDetail.DataState=1
+      UNION ALL --
+      SELECT outbound.Id,center.DialysisName,outbound.CenterId,outbound.OutboundNo,emp.Name,outbound.FounderDate,emp1.Name as AuditorName,outbound.AuditDate,outbound.Remark,batchdetail.OutInBoundDetailId ,batch.BatchNo,mir.MedicalItemCode,mir.MedicalItemWorkCode,batch.QualityDate,batchdetail.FounderDate as putInstorageDate,
+      (CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,warehouse.Name AS WareHouseName,
+      mir.MedicalItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+      mir.Manufacturer, batchdetail.OutInBoundQty as ItemQty,batch.InPrice,batch.SalePrice,suppliers.Name AS SupplierName
+      FROM MaterialOutboundDetail   as outbounddetail
+      INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id  and outbound.DataState=1
+      INNER JOIN BatchNoSecondaryStoreroomDetail   as batchdetail on outbounddetail.Id=batchdetail.OutInBoundDetailId and outbounddetail.DataState=1
+      INNER join dbo.AssetSecondaryStoreList as  batch  on batchdetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      left join Employees as emp on emp.Id=outbound.Founder
+      left join Employees as emp1 on emp1.Id=outbound.Auditor
+      LEFT JOIN dbo.WareHouseCatalog AS warehouse ON batch.WarehouseId=warehouse.Id
+      left join CenterDialysiss  as center on outbound.CenterId=center.Id
+      LEFT JOIN  dbo.Suppliers AS suppliers ON batch.SupplierId=suppliers.Id
+      WHERE outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' AND  outbound.OutboundType='01f769807f9a4736be41db800606447e' AND  OutboundDetail.DataState=1
+      )a where 1=1 @SqlWhere ORDER BY a.OutboundNo ASC
+    </SqlGetScrapOutboundStatisticsByDate>
+  </MaterialsStatisticaManager>
+
+  <MedicalRcordManager Remark="病案管理">
+    <SqlGetAllPrescriptionByPatientId Remark="根据患者Id查询处方单列表">
+      SELECT p.Name AS PatientName, dp.* FROM dbo.Prescription AS dp INNER JOIN dbo.Patient AS p ON p.Id = dp.PatientId
+      WHERE dp.DataState=1 And dp.PatientId=@PatientId  and  dp.CenterId=@CenterId   and  dp.ChargeStatus in(2,3)    and  dp.FounderDate BETWEEN '{0}' AND '{1}'    Order By dp.FounderDate desc
+    </SqlGetAllPrescriptionByPatientId>
+    <SqlGetAllPrescriptionDetailByPrescriptionId Remark="根据处方单Id查询处方单明细列表">
+      SELECT   presDetail.WeekMedication,packageUnit.SpeUnitCHS as PackageUnitName,specificationsUnit.SpeUnitCHS as SpecificationsUnitName,mir.PackageUnit,mir.SpecificationsUnit,mir.IsSplited,mir.GoodsName,mir.FeeTypeId ,syst.Name as FeeType,presDetail.*,mir.DoseMin,mir.Specifications,mir.MedicalItemType,presDetail.PrescribingUnit,presUnit.SpeUnitCHS AS PrescribingUnitName,
+      mir.MedicalItemName AS MaterialName,mir.Packaging,mir.PackageSpecifications,mir.SpecificationsQuantity,doseU.SpeUnitUS AS DoseUnitName,mtUnit.SpeUnitCHS AS MaterialTotalUnitName,mmUnit.SpeUnitCHS AS MinMeasuringUnitName,
+      usageId.WayDescribe AS UsageName ,fqId.WayDescribe AS  FrequencyName,presPerson.Name AS PrescriptionMedicalStaffName,nurse.Name AS NurseName,cItems.Name as CatalogueName,
+      (SELECT SUM(presDR.ReturnWarehouseQty)  FROM dbo.PrescriptionDetailRefund AS presDR WHERE  presDR.DataState=1 AND presDR.RefundStatus=2 AND presDR.PrescriptionDetailId=presDetail.Id) AS RefundTotalQty
+      FROM  dbo.PrescriptionDetail AS presDetail
+      LEFT JOIN dbo.MedicalItemRecords AS mir ON  mir.Id = presDetail.MaterialId
+      --LEFT JOIN dbo.MedicalDrugExtensions AS mPrice ON  mPrice.MedicalId = mir.Id and mPrice.IsCurrentUse=1 --物品价格
+      LEFT JOIN  dbo.MedicalUnits as doseU ON doseU.Id = mir.DoseUnit--制剂单位
+      LEFT JOIN  dbo.UseWays AS fqId ON fqId.Id = presDetail.FrequencyId--频次
+      LEFT JOIN  dbo.UseWays AS usageId ON usageId.Id = presDetail.UsageId--用法
+      LEFT JOIN  dbo.Employees AS presPerson ON  presPerson.Id = presDetail.PrescriptionMedicalStaff--开处方单的医护人员
+      LEFT JOIN dbo.Employees AS nurse ON  nurse.Id = presDetail.NurseId--执行护士
+      LEFT JOIN  dbo.MedicalUnits AS presUnit ON  presUnit.Id = presDetail.PrescribingUnit--选择物品的单位
+      LEFT JOIN  dbo.MedicalUnits AS mtUnit ON  mtUnit.Id = presDetail.MaterialTotalUnit--物品计价的单位
+      LEFT JOIN  dbo.MedicalUnits AS mmUnit ON  mmUnit.Id = presDetail.MinMeasuringUnit--物品库存的单位,最小计量单位
+      LEFT JOIN  dbo.CatalogueItems AS cItems ON  mir.WareHouseIds = cItems.Id--类别
+      LEFT JOIN  dbo.SystemDictionarys AS syst ON  mir.FeeTypeId = syst.Id--费用类别
+      LEFT JOIN  dbo.MedicalUnits AS packageUnit ON  packageUnit.Id = mir.PackageUnit--物品包装单位
+      LEFT JOIN  dbo.MedicalUnits AS specificationsUnit ON  specificationsUnit.Id = mir.SpecificationsUnit--规格单位
+      WHERE  presDetail.DataState =1  and presDetail.PrescriptionId=@PrescriptionId  order by presDetail.ModifierDate desc
+    </SqlGetAllPrescriptionDetailByPrescriptionId>
+    <SqlGetAllFeesForListingByPatientId Remark="根据患者Id查询收费清单">
+      select a.Id, c.Name as PatientName ,c.Sex,c.Birthday,
+      (CASE   c.SIInsuredType  WHEN '310' THEN '职工' WHEN '390' THEN '居民' ELSE '其它' END) AS 'SIInsuredType',
+      a.BalanceType,a.BalanceDate,a.SumPrice,a.BalanceState,a.RecipelNos,a.BalanceNo
+      <!--(select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=7 AND b1.CenterId='{1}') as  HealthCareMoney,
+      (select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=11 AND b1.CenterId='{1}') as  LargeMoney,
+      (select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=9 AND b1.CenterId='{1}') as  RliefMoney,
+      (select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=2 AND b1.CenterId='{1}') as  AccountMoney,
+      (select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=1 AND b1.CenterId='{1}') as  CashMoney,
+      (select b1.ReceivableMoney from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo and   b1.PayType=13 AND b1.CenterId='{1}') as  CBMoney,
+      (select SUM(DifferenceMoney) from   BalancePayType as b1  where b1.BalanceNo=a.BalanceNo ) AS DifferenceMoney-->
+      from BalanceMain  as  a
+      left join Patient  as  c  on a.PatientNo=c.PatientNo    WHERE   a.BalanceState=1 and c.Id='{0}' and  a.CenterId='{1}' and  a.BalanceDate BETWEEN '{2}' AND '{3}'    order by  a.BalanceNo desc
+    </SqlGetAllFeesForListingByPatientId>
+    <SqlGetAllFeesForListingDetailById Remark="根据Id查询收费清单明细">
+      SELECT a.RecipelNo,a.BalanceNo,a.ItemName,a.ItemCode,a.Qty,a.UnitPrice,a.TotalPrice,b.BalanceDate,b.CancelDate,b.BalanceState,b.CancelFlag,a.DetailsId,b.PatientNo,a.CategoryName,a.Specifications,
+      --(SELECT Name FROM dbo.Patient p WHERE p.PatientNo = b.PatientNo) AS PatientName,isnull(Convert(varchar(19),b.CancelDate,120),'') as ReBalanceNo,b.BalancePerson,
+      -- (SELECT ISNULL(SUM(c.ApplyRefundQty),0) FROM dbo.PrescriptionDetailRefund c WHERE a.DetailsId = c.PrescriptionDetailId AND c.RefundStatus = 1 and c.DataState = 1 AND c.CenterId='{0}') AS PreRefundQty,
+      --(SELECT ISNULL(SUM(c.ApplyRefundQty),0) FROM dbo.PrescriptionDetailRefund c WHERE a.DetailsId = c.PrescriptionDetailId AND c.RefundStatus = 2 and c.DataState = 1  AND c.CenterId='{0}' ) AS RefundQty,
+      --(SELECT ISNULL(SUM(c.ApplyRefundQty),0) FROM dbo.PrescriptionDetailRefund c WHERE a.DetailsId = c.PrescriptionDetailId AND c.RefundStatus = 2 and c.DataState = 1  AND c.CenterId='{0}') * a.UnitPrice AS RefundMoney,
+      cc.FounderDate AS PrescriptionDetailFounderDate
+      FROM dbo.BalanceDetails a
+      LEFT JOIN dbo.BalanceMain b
+      ON a.BalanceNo = b.BalanceNo
+      LEFT JOIN dbo.PrescriptionDetail cc
+      ON cc.Id = a.DetailsId
+      WHERE  cc.DataState = 1
+      AND  b.BalanceNo=@BalanceNo AND b.BalanceState=1 AND a.CenterId='{0}' AND b.CenterId='{0}'
+    </SqlGetAllFeesForListingDetailById>
+  </MedicalRcordManager>
+
+  <HospitalFeelingManager Remark="监督管理">
+    <SqlGetAssociatedOutpatientLogInfoForDate Remark="日期查询相关联的门诊日志信息">
+      SELECT  T1.CenterDialysisId,T1.Id AS 'PatientId',T3.LoginTime AS 'VisitDate',T1.FirsthHematodialysisDate AS 'MorbidityDate',T1.Name,T4.Name AS Sex,T1.Birthday,T1.Professional,T1.ContactAddress AS 'NowAddress',
+      T2.PrincipleAction AS 'MainSymptomsAndSigns',T2.Diagnose,T3.PreSystolicPressure,T3.PreDiastolicPressure
+      FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER(PARTITION BY PatientId ORDER BY FounderDate DESC)rownum,*
+      FROM dbo.PreTreatMessage WHERE  DataState=1 ) AS T31 WHERE T31.rownum=1) AS T3  --患者上机登陆信息
+      LEFT JOIN (SELECT * FROM (SELECT ROW_NUMBER() OVER(PARTITION BY PatientId ORDER BY FounderDate DESC)rownum,*
+      FROM dbo.OutpatientMedicalRecord WHERE DataState=1) AS T21 WHERE T21.rownum=1) AS T2 ON  T2.PatientId = T3.PatientId  --患者门诊病例
+      LEFT JOIN  [dbo].[Patient] AS T1 ON T1.Id = T3.PatientId  --患者信息
+      LEFT JOIN [dbo].[SystemDictionarys] AS T4 ON T4.Id = T1.Sex --字典信息
+      where T1.CenterDialysisId='{0}'ORDER BY T1.PatientNo DESC;
+    </SqlGetAssociatedOutpatientLogInfoForDate>
+  </HospitalFeelingManager>
+
+  <BusinessTargetStatisticalManager Remark="收支报表">
+    <SqlGetSumCost Remark="成本总汇">
+      SELECT * FROM (
+      SELECT outbound.CenterId, putoutflow.ItemDetailId as OutInBoundDetailId ,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+      mir.MedicalItemType,putoutflow.ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName,
+      mir.Manufacturer ,putoutflow.FounderDate as putInstorageDate,putoutflow.ItemQty,putstore.InPrice,putstore.SalePrice --outbounddetail.UnitPrice as InPrice ,outbounddetail.SalesPrice as SalePrice
+      FROM  MaterialOutboundDetail   as outbounddetail
+      INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id and outbound.DataState=1
+      INNER JOIN PutOutFlow   as putoutflow ON outbounddetail.Id=putoutflow.ItemDetailId
+      left join MedicalItemRecords as  mir  on mir.Id=outbounddetail.MaterialId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      INNER JOIN dbo.PutInStorageBatchNoDetails AS putstore ON putoutflow.PutOutId=putstore.Id
+      WHERE   outbound.AuditConditionId='9000bced463f42fbadef5abc554a5145' and (outbound.OutboundType='01f769807f9a4736be41db800606447e' )
+      UNION ALL --
+      SELECT  outbound.CenterId,  batchdetail.OutInBoundDetailId ,(CASE mir.MedicalItemType WHEN '1' THEN '药品' WHEN '2' THEN '卫生耗材' WHEN '3' THEN '固定资产' WHEN '4' THEN '低值易耗' ELSE '其它' END) AS 'ItemTypeName',mir.Id as MedicalItemId,
+      mir.MedicalItemType,batchdetail.OutInBoundType as ItemType,mir.MedicalItemName,mir.IsSplited,mir.Packaging,mir.Specifications,unit1.SpeUnitCHS as PackageUnitName,unit2.SpeUnitCHS as SpecificationsUnitName ,
+      mir.Manufacturer,batchdetail.FounderDate as putInstorageDate, batchdetail.OutInBoundQty as ItemQty,batch.InPrice,batch.SalePrice
+      FROM MaterialOutboundDetail   as outbounddetail
+      INNER join MaterialOutbound  as outbound on outbounddetail.MaterialOutboundId=outbound.Id  and outbound.DataState=1
+      INNER JOIN BatchNoSecondaryStoreroomDetail   as batchdetail on outbounddetail.Id=batchdetail.OutInBoundDetailId and outbounddetail.DataState=1
+      INNER join BatchNoSecondaryStoreroom as  batch  on batchdetail.BatchNoSecondaryStoreroomId=batch.Id
+      left join MedicalItemRecords as  mir  on mir.Id=batch.MedicalItemId
+      left join MedicalUnits  as unit1  on mir.PackageUnit=unit1.Id
+      left join MedicalUnits  as unit2  on mir.SpecificationsUnit=unit2.Id
+      --销售 ，退货退费，领用，报废
+      WHERE  outbound.OutboundType IN ('a7d83b6d81104475b7ede8ea467bab1f','608399fe9db64480828b3f20c6815fd1','0c0c27faec0e43d8aa9824925a340b81','01f769807f9a4736be41db800606447e')
+      )aa where   aa.putInstorageDate BETWEEN '{0}' AND '{1}'
+    </SqlGetSumCost>
+  </BusinessTargetStatisticalManager>
+</SqlQuery>

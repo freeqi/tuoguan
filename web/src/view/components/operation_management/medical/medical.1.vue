@@ -1,0 +1,516 @@
+<template>
+  <div id="medical">
+    <medical-record-list-temp :api="api" @on-change="changePatient">
+      <div slot="content">
+        <ul class="tab-panel">
+          <li class="tab-panel-item"
+            v-for="item in tabData"
+            :key="item.id"
+            @click="changeTab(item.id)"
+            :class="tabCheckedInfo.id == item.id ? 'active' : ''">
+            {{item.name}}
+          </li>
+        </ul>
+        <div class="table" v-if="tabCheckedInfo.id<=2">
+          <div class="top-btn-group">
+            <span>选择{{tabCheckedInfo.name}}类型</span>
+            <RadioGroup v-model="medicalRecordChecked.i" @on-change="changeRecordType">
+              <Radio v-for="item in medicalRecordList" :label="item.i" :key="item.i" >{{item.recordName}}</Radio>
+            </RadioGroup>
+            <div class="right-group">
+              <Icon type="md-download" size="18" /> 下载
+            </div>
+          </div>
+          <div class="table-content">
+            <div class="pdf-box">
+              <h4>{{medicalRecordChecked.recordName}}</h4>
+              <Divider style="margin:10px 0 15px;"/>
+              <div class="pdf-view">
+                <object :data="`${baseUrl}Document/fileview/${medicalRecordChecked.id}`" type="application/pdf" width="73%" height="600">
+                  <p>抱歉，您的浏览器不支持PDF预览，请点击链接下载PDF文件<a :href="`${baseUrl}Document/fileview/${medicalRecordChecked.id}`"></a></p>
+                </object>
+
+                <div class="pdf-list">
+                  <span>历史记录</span>
+                  <div class="pdf-list-box" >
+                    <p class="pdf-list-text" :class="medicalRecordChecked.id === item.id ? 'active': ''"
+                      v-for="item in historyRecordList"
+                      :key="item.id"
+                      @click="changeRecord(item)">
+                      {{item.date}}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="table2" v-else>
+          <h2>{{medicalCheckedInfo.hospitalName}}{{tabCheckedInfo.name}}{{`-${medicalCheckedInfo.patientName}`}}</h2>
+          <div>
+            <div class="btn-groups">
+              <span>状态</span>
+              <RadioGroup v-model="dataFilterType" type="button" @on-change="changeDateType">
+                <Radio :label="item.id" :key="item.id" v-for="item in dataFilterTypeList">{{item.label}}</Radio>
+              </RadioGroup>
+              <span>日期选择</span>
+              <DatePicker :value="dateRange" placeholder="请选择筛选时间段" @on-change="changeDate" type="daterange" :options="dateRangeOptions"></DatePicker>
+            </div>
+            <div class="table2-content">
+              <Table :columns="table_columns" :data="table_demo_date" :loading="loading"></Table>
+            </div>
+          </div>
+          <div class="table_detail" v-show="table_detail_flag">
+            <div class="head_content">
+              <Button type="default"  @click="hide" icon="md-undo">返回</Button>
+              <!-- <div class="step-wrapper">
+                <Steps :current="currentStep" :status="currentStatus">
+                  <Step v-for="(item, index) in approvalProcessOutPuts" :key="index" :title="item.title" :content="item.content"></Step>
+                </Steps>
+              </div> -->
+              <p class="record">
+                {{tabCheckedInfo.name}}号：{{formDetail.hjNum}}
+                <span v-if="formDetail.chargeStatus === '2'" class="default">未收费</span>
+                <span v-else-if="formDetail.chargeStatus === '3'" class="success">已收费</span>
+                <span v-else class="error">已拒绝</span>
+                <span class="right button-group">
+                  <Button type="primary" size="large" @click="">打印申请单</Button>
+                </span>
+              </p>
+              <p class="items-box">
+                <span class="field">划价时间：</span><span>{{formDetail.chargeTime}}</span>
+                <span class="field">姓名：</span><span>{{formDetail.patientName}}</span>
+                <span class="field">性别：</span><span>男</span>
+                <span class="field">年龄：</span><span class="red">34</span>
+                <span class="field">总金额：</span><span class="red">￥{{formDetail.totalPrice || '-'}}</span>
+              </p>
+            </div>
+            <Divider></Divider>
+            <Table :columns="table_detail_columns" :data="table_detail_data" :loading="tableDetailLoading"></Table>
+          </div>
+        </div>
+      </div>
+    </medical-record-list-temp>
+  </div>
+</template>
+
+<script>
+import { toBoolean } from '@/libs/tools'
+import medicalRecordListTemp from './medical_record_list.vue'
+import columns from './columns.js'
+export default {
+  mixins: [columns],
+  components: {
+    medicalRecordListTemp
+  },
+  data () {
+    return {
+      tableDetailLoading: false,
+      table_detail_flag: false,
+
+      dateRange: [], // cy时间段筛选
+      dataFilterType: 1, // cy时间快捷筛选
+      dataFilterTypeList: [
+        {id: 0, label: '全部'},
+        {id: 1, label: '近一个月'},
+        {id: 2, label: '近三个月'}
+      ],
+      dateRangeOptions: {
+        disabledDate (date) {
+          return date && date.valueOf() > Date.now()
+        }
+      },
+      // ---------------文档/病案 + 模拟数据
+      medicalRecordChecked: {
+        i: 0, id: '', recordName: ''
+      },
+      medicalRecordList: [
+      ],
+
+      tabCheckedInfo: {
+        id: 1,
+        name: '病历文档'
+      },
+      tabData: [
+        {
+          id: 1,
+          name: '病历文档'
+        },
+        {
+          id: 2,
+          name: '医疗文书'
+        },
+        {
+          id: 3,
+          name: '收费清单'
+        },
+        {
+          id: 4,
+          name: '处方单'
+        }
+      ],
+      // -------------------
+      // cy被选择的机构、患者信息
+      medicalCheckedInfo: {},
+
+      table_columns: [],
+      table_data: [],
+      formDetail: [],
+
+      loading: false,
+      // pageSize: 12,
+      // startPage: 1,
+      // searchKey: '',
+      api: 'Patients/Patients',
+      baseUrl: process.env.NODE_ENV === 'development' ? this.$config.baseURL.dev : this.$config.baseURL.pro,
+      pdfUrl: ''
+    }
+  },
+  beforeMount () {
+    this.$nextTick(() => {
+      this.changeTab()
+    })
+  },
+  methods: {
+    // cy 隐藏详情
+    hide () {
+      this.table_detail_flag = false
+    },
+    // cy 查看表单详情
+    showDetail (row) {
+      console.log('showDetail---------', this.tabCheckedInfo.id)
+      this.formDetail = row
+      // cy 更改表头和数据（模拟）
+      this.tableDetailLoading = true
+      this.table_detail_columns = this.tabCheckedInfo.id == 3 ? this.table_charge_detail_columns : this.table_prescription_detail_columns
+      //
+      this.table_detail_data = this.tabCheckedInfo.id == 3 ? this.table_detail_demo_date : []
+      this.tableDetailLoading = false
+      console.log('table_detail_data---------', this.table_detail_data)
+      this.table_detail_flag = true
+    },
+    // cy 筛选日期
+    changeDateType (i) {
+      console.log('changeDateType---------', i)
+    },
+    changeDate (arr) {
+      console.log('dateRange', this.dateRange, 'arr:', arr)
+    },
+    // cy 选择下拉文档
+    // changeMedicalRecord(i){
+    //   console.log('changeMedicalRecord---------',i)
+    //   this.medicalRecordSelectedId = i
+    //   console.log('medicalRecordSelectedId---------',this.medicalRecordSelectedId)
+    //   this.medicalRecordChecked={
+    //     i:i,
+    //     id: i==0 ? 0 : this.historyRecordList.filter(item => item['i']==i)[0].id,
+    //     recordName: i==0 ?'全部': this.historyRecordList.filter(item => item['i']==i)[0].recordName
+    //   }
+    //   console.dir(this.medicalRecordChecked)
+    // },
+    // cy 选择历史记录
+    changeRecord (item) {
+      // console.log(item)
+
+      let {i, id, recordName} = item
+      this.medicalRecordChecked = {
+        i,
+        id,
+        recordName
+      }
+    },
+    // cy 切换文档/病案单选
+    changeRecordType (index) {
+      let recordId = this.medicalRecordList[0].i
+      index = index || recordId
+      console.log('index', index)
+
+      let data = this.historyRecordListData.filter(item => item['i'] == index)
+      console.log('data', data[0])
+      let {i, id, recordName} = data[0]
+      this.medicalRecordChecked = {
+        i,
+        id,
+        recordName
+      }
+      this.historyRecordList = data
+      console.log('changeRecordType2---------', this.medicalRecordChecked)
+    },
+    // cy 切换标签
+    changeTab (id) {
+      id = id || 1
+      this.tabCheckedInfo = {
+        id: id,
+        name: this.tabData.filter(item => item['id'] == id)[0].name
+      }
+      console.log('changeTab1---------------------', id)
+      // cy 更改 病案/文档的数据 测试用
+      switch (id) {
+        case 1:
+          this.medicalRecordList = this.medicalRecordListData1
+          console.log('changeTab2---------------------', this.medicalRecordList)
+          this.changeRecordType(); break
+        case 2:
+          this.medicalRecordList = this.medicalRecordListData2
+          this.changeRecordType(); break
+        case 3: this.table_columns = this.table_charge_columns; break
+        case 4: this.table_columns = this.table_prescription_columns; break
+      }
+      // cy 设置默认被选中文档的info{i,id,recordName}
+
+      // cy将判断统一
+      // if (this.hospitalCheckedId === '0'){
+      //   this.getMonthIndicatorList(id)
+      //   // cy：全部显示时table新增机构列
+      //   this.table_columns = [...[this.organizationName],...this.table_column_detail]
+      // } else{
+      //   this.title = this.tabData.filter(item => item.id===id)[0].name
+      //   this.table_columns = this.table_column_detail
+      //   this.getCenterData()
+      // }
+    },
+    changePatient (info) {
+      console.log('子组件触发changePatient:', info)
+      this.medicalCheckedInfo = info
+      console.log('this.medicalCheckedInfo:', this.medicalCheckedInfo)
+    }
+
+    // changePage (i) {
+    //   this.getPatientList(i)
+    // },
+    // 获取患者列表
+    // getPatientList (i) {
+    //   i = i || 1
+    //   let args = {
+    //     name: this.searchKey,
+    //     centerId: this.hospitalCheckedId,
+    //     pageSize: this.pageSize,
+    //     pageNum: i
+    //   }
+    //   this.loading = true
+    //   this.swsApi.swsPost('Patients/Patients', args)
+    //     .then(res => {
+    //       this.loading = false
+    //       if (res.data.result) {
+    //         this.patient_data = res.data.result
+    //         this.patientDataCount = res.data.dataCount
+    //       } else {
+    //         this.$Notice.error({
+    //           title: '请求错误',
+    //           desc: '网络错误，请稍后再试'
+    //         })
+    //       }
+    //     })
+    //     .catch(e => {
+    //       this.loading = false
+    //       this.$Notice.error({
+    //         title: '请求错误',
+    //         desc: '网络错误，请稍后再试'
+    //       })
+    //     })
+    // },
+  }
+}
+</script>
+
+<style scoped lang="less">
+#medical {
+  position: relative;
+  height: 100%;
+  /deep/ .content {
+    margin-right: 20px;
+    width: 100%;
+    background: #ffffff;
+    overflow-y: auto;
+  }
+  .tab-panel {
+    font-size: 0;
+    display: inline-block;
+    &-item {
+      position: relative;
+      display: inline-block;
+      font-size: 11px;
+      // width: 90px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      background-color: #ffffff;
+      border: solid 1px #eaeaea;
+
+      border-left: none;
+      cursor: pointer;
+      &:first-child {
+        border-left: solid 1px #eaeaea;
+        &.active {
+          border-left-color: transparent;
+        }
+      }
+      &.active {
+        color: #ee5151;
+        border-bottom: none;
+        border-top: solid 1px #ff6e5c;
+      }
+      &:hover {
+        color: #ee5151;
+      }
+    }
+  }
+  .table{
+    background: #ffffff;
+    overflow-y: auto;
+    padding:20px 20px 40px;
+    .right-group{
+      float: right;
+      cursor: pointer;
+      line-height: 37px;
+      font-size: 14px;
+      margin-right: 30px;
+      color:#5A9BE9;
+    }
+    .top-btn-group{
+      span{
+        margin-right: 20px;
+        width: 60px;
+        text-align: right;
+      }
+    }
+    .table-content{
+      margin-top: 20px;
+      .pdf-box {
+        h4 {
+          display: inline-block;
+          padding-left: 10px;
+          border-left: 3px solid #3399ff;
+          margin: 15px 10px 0 0;
+          font-size: 13px;
+          line-height: 13px;
+        }
+        .pdf-list {
+          float: right;
+          color: #333333;
+          width: 183px;
+          font-size: 14px;
+          text-align: center;
+          .pdf-list-box {
+            margin-top: 20px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: solid 1px #eaeaea;
+            font-size: 13px;
+            text-align: left;
+            .pdf-list-text{
+              color: #555555;
+              // font-weight: 600;
+              border-bottom: 1px dashed #ddd;
+              line-height: 33px;
+              &:hover{
+                background: #F0F0F0;
+                cursor: pointer;
+              }
+            }
+            .active{
+              background: #F0F0F0;
+            }
+          }
+          &.disable + * {
+            .default-table {
+              margin-left: 0 !important;
+            }
+          }
+        }
+      }
+    }
+  }
+  .table2 {
+    position: relative;
+    padding: 20px;
+    h2{
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .btn-groups {
+      color: #999;
+      font-size: 13px;
+      span {
+        margin-right: 20px;
+        display: inline-block;
+        // width: 60px;
+        text-align: right;
+      }
+      & + .btn-groups {
+        margin: 20px 0 ;
+      }
+      & > * {
+        margin-right: 20px;
+      }
+      /deep/ .ivu-radio-group-button .ivu-radio-wrapper-checked {
+        color: #ffffff;
+        background: #4f95e8;
+      }
+    }
+    .table2-content{
+      margin-top: 20px;
+    }
+    .table_detail{
+      position: absolute;
+      background: #ffffff;
+      top: 50px;
+      left: 0;
+      overflow-y: auto;
+      padding: 20px;
+      z-index: 4;
+      width: 100%;
+      height: 100%;
+      .head_content {
+        .record{
+          margin: 20px 0 10px;
+          color: #333333;
+          font-size: 16px;
+          span {
+            margin-left: 10px;
+          }
+          .right {
+            float: right;
+            .approval {
+              background: #f90;
+              color: #ffffff;
+              border-color: #f90;
+            }
+          }
+          &::after {
+            display: block;
+            content: '';
+            height: 0;
+            visibility: hidden;
+            clear: both;
+          }
+        }
+        .items-box {
+          font-size: 14px;
+          .field {
+            color: #666666;
+            & + .red {
+              color: #fc4b4b;
+            }
+          }
+          span:not(.field) {
+            font-weight: bold;
+            margin-right: 50px;
+          }
+        }
+      }
+    }
+  }
+}
+.color-gray {
+  color: #999
+}
+.empty {
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 80px;
+  text-align: center;
+}
+</style>

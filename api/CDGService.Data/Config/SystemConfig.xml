@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+  <!--LogFlag: txt 文本，db 数据库-->
+  <LogFlag Remark="标识日志记录模式">txt</LogFlag>
+  <Aspect Remark="标识数据加密模式[1单向或2双向]">1</Aspect>
+  <SqlQueryPath Remark="sql查询配置文件路径">
+    SqlXml\SqlQuery.xml
+  </SqlQueryPath>
+</Config>

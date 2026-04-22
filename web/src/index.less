@@ -1,0 +1,187 @@
+// @import '~iview/src/styles/index.less';
+@import '~view-design/src/styles/index.less';
+
+// @menu-dark-title: #4f95e8;
+// @menu-dark-active-bg: #3374c2;
+// @layout-sider-background: #4f95e8;
+// .color-primary { color: #4f95e8;}
+
+@menu-dark-title: #178fff;
+@menu-dark-active-bg: #0971e1;
+@layout-sider-background: #178fff;
+
+
+.ivu-form .ivu-form-item-label{
+  padding: 10px 10px 10px 0px;
+  font-size: 12px;
+}
+.ivu-table-cell {
+  padding: 0 5px;
+}
+.color-primary {
+  color: #2d8cf0;
+}
+
+.center {
+  text-align: center;
+}
+.bold {
+  font-weight: bold;
+}
+ul,
+ul li {
+  list-style: none;
+}
+.vertical-center-modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .ivu-modal {
+    top: 0;
+  }
+}
+.demo-spin-icon-load {
+  animation: rotate linear infinite 1s;
+}
+.emphasize {
+  font-size: 14px;
+  color: #000;
+  font-weight: bold;
+}
+@keyframes rotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+// ::-webkit-scrollbar
+// {
+//   width: 8px;  /*滚动条宽度*/
+//   height: 8px;  /*滚动条高度*/
+// }
+
+// /*定义滚动条轨道 内阴影+圆角*/
+// ::-webkit-scrollbar-track
+// {
+//   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+//   border-radius: 10px;  /*滚动条的背景区域的圆角*/
+//   background-color: transparent;/*滚动条的背景颜色*/
+// }
+
+// /*定义滑块 内阴影+圆角*/
+// ::-webkit-scrollbar-thumb
+// {
+//   border-radius: 2px;  /*滚动条的圆角*/
+//   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+//   background-color: #999;  /*滚动条的背景颜色*/
+// }
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 8px;
+}
+/* 滚动槽 */
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset006pxrgba(0, 0, 0, 0.3);
+}
+/* 滚动条滑块 */
+::-webkit-scrollbar-thumb {
+  background: #2d8cf0;
+  -webkit-box-shadow: inset006pxrgba(0, 0, 0, 0.5);
+}
+::-webkit-scrollbar-thumb:window-inactive {
+  background: #2d8cf0;
+}
+scrollbar {
+  width: 6px;
+  height: 8px;
+}
+/* 滚动槽 */
+::-moz-scrollbar-track {
+  -moz-box-shadow: inset006pxrgba(0, 0, 0, 0.3);
+}
+/* 滚动条滑块 */
+::-moz-scrollbar-thumb {
+  border-radius: 8px;
+  background: #2d8cf0;
+  -moz-box-shadow: inset006pxrgba(0, 0, 0, 0.5);
+}
+::-moz-scrollbar-thumb:window-inactive {
+  background: #2d8cf0;
+}
+
+.pagination {
+  margin: 16px;
+  text-align: right;
+  .page {
+    float: initial !important;
+  }
+}
+#organization-describe-box {
+  padding: 0 40px;
+  margin: 0 auto;
+  p {
+    margin-bottom: 10px;
+    line-height: 2em;
+  }
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.tab-panel {
+  font-size: 0;
+  color: #8e8e8e;
+  background: #f5f7f9;
+  &-item {
+    position: relative;
+    display: inline-block;
+    font-size: 13px;
+    padding: 0 15px;
+    // width: 90px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background-color: #ffffff;
+    border: solid 1px #eaeaea;
+    border-left: none;
+    cursor: pointer;
+    transition: color 0.3s;
+    &::before {
+      position: absolute;
+      display: block;
+      content: '';
+      top: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: transparent;
+      transition: all 0.3s;
+    }
+    &:first-child {
+      border-left: solid 1px #eaeaea;
+      &.active {
+        border-left-color: transparent;
+      }
+    }
+    &.active {
+      color: #ff6e5c;
+      border-bottom-color: transparent;
+      &::before {
+        background-color: #ff6e5c;
+      }
+    }
+    &:hover {
+      color: #ff6e5c;
+    }
+  }
+}
+.red {
+  color: red;
+}

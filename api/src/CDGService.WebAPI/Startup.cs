@@ -82,9 +82,10 @@ namespace CDGService.WebAPI
             {
                 options.AddPolicy("any", builders =>
                 {
-                    builders.AllowAnyOrigin()
+                    builders.WithOrigins("http://localhost:8081")
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
                 });
             });
             #endregion
@@ -132,10 +133,11 @@ namespace CDGService.WebAPI
             using (var scope = app.ApplicationServices.CreateScope())
             {
                 var appdb = scope.ServiceProvider.GetService<AppDb>();
-                appdb.Database.Migrate();
-                appdb.InitEmployeeInfo();
-                appdb.InitUserInfo();
-                appdb.ClearExpireTokens();
+                // 暂时注释掉数据库迁移和初始化，让服务能够启动
+                // appdb.Database.Migrate();
+                // appdb.InitEmployeeInfo();
+                // appdb.InitUserInfo();
+                // appdb.ClearExpireTokens();
                 
                 // 初始化静态Mapper
                 var mapper = scope.ServiceProvider.GetService<AutoMapper.IMapper>();

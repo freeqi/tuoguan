@@ -91,9 +91,9 @@ namespace CDGService.WebAPI.Extenstions
             var isneedcheck = invocation.Method.GetCustomAttributes().Any(t => t is CheckLoginAttribute);
             if (!isneedcheck)
             {
-                var ip = (invocation.Proxy as ControllerBase)?.HttpContext.GetUserIp();
+                var ip = (invocation.Proxy as Controller)?.HttpContext?.GetUserIp();
 
-                if (ip.Contains("172.16.7") || ip.Contains("172.16.6"))
+                if (!string.IsNullOrEmpty(ip) && (ip.Contains("172.16.7") || ip.Contains("172.16.6")))
                 { 
                     throw new Exception("禁止访问");
                 }
@@ -102,7 +102,7 @@ namespace CDGService.WebAPI.Extenstions
 
             }
 
-            var request = (invocation.Proxy as ControllerBase)?.HttpContext.Request;
+            var request = (invocation.Proxy as Controller)?.HttpContext.Request;
             var token = request?.Headers["token"];
 
             //  token = "764dafb2c1aa59482f583812b07e4234b2a488fa890fa0b5";//测试用 dd669205cad8860e ab29aa0ae0644549a6bfb9639889f54b  铜梁：tl29aa0ae0644549a6bfb9639889f54d

@@ -263,7 +263,7 @@ namespace CDGService.WebAPI.DataCore
                         //    if (!item.MedicaItemTypeCount.HasValue || item.MedicaItemTypeCount <= 0)
                         //        await UpdatePu(item.Id);
                         //}
-                        result = Mapper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
+                        result = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
                         count = result.Length;
                     }
 
@@ -319,7 +319,7 @@ namespace CDGService.WebAPI.DataCore
                         }
 
 
-                        // result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                        // result = AutoMapperHelper.Map<CenterDialysisOutPut[]>(Dialysis);
                         //foreach (var item in purchaseRequestsData)
                         //{
                         //    if (!item.MedicaItemTypeCount.HasValue || item.MedicaItemTypeCount <= 0)
@@ -327,7 +327,7 @@ namespace CDGService.WebAPI.DataCore
                         //}
                         //  count = Sum.Count();
 
-                        // result = Mapper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
+                        // result = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
 
                     }
                     // else
@@ -373,7 +373,7 @@ namespace CDGService.WebAPI.DataCore
                     decimal? price = 0; //ListDetaildata.Sum(t => t.InPrice);
                     decimal? SalesTotalPrice = 0;
                     decimal? TotalQty = 0;
-                    result = Mapper.Map<PurchaseDetailOutPut[]>(Sum);
+                    result = AutoMapperHelper.Map<PurchaseDetailOutPut[]>(Sum);
                     int NoIndex = 1;
                     foreach (var item in result)
                     {
@@ -395,7 +395,7 @@ namespace CDGService.WebAPI.DataCore
 
 
 
-                    var data = Mapper.Map<PurchaseRequestOutPut>(Requestdata);
+                    var data = AutoMapperHelper.Map<PurchaseRequestOutPut>(Requestdata);
 
                     //var temp = Sum.Where(t => (t.OrderId != null && t.OrderId != "") && t.DataState == 1).ToList();
                     //if (temp == null || temp.Count <= 0)
@@ -498,7 +498,7 @@ namespace CDGService.WebAPI.DataCore
                     //PurchaseRequestStore.Update(Requestdata);
                     //_unitOfWork.SaveChanges();
 
-                    result = Mapper.Map<PurchaseDetailOutPut[]>(Sum);
+                    result = AutoMapperHelper.Map<PurchaseDetailOutPut[]>(Sum);
                     int NoIndex = 1;
                     foreach (var item in result)
                     {
@@ -506,7 +506,7 @@ namespace CDGService.WebAPI.DataCore
                         NoIndex++;
 
                     }
-                    var data = Mapper.Map<PurchaseRequestOutPut[]>(Requestdata);
+                    var data = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(Requestdata);
 
                     purchaseOutPut.purchaseRequest = data;
                     purchaseOutPut.purchaseDetails = result;
@@ -1041,7 +1041,7 @@ namespace CDGService.WebAPI.DataCore
                     var medData = await MedicalItemRecordStore.GetFirstOrDefaultAsync(t => t.Id == input.MedicalItemId);
                     var userId = await _getUserInfo.GetCurrentUserIdAsync();
                     PurchaseDetail data = null;
-                    data = Mapper.Map<PurchaseDetail>(input);
+                    data = AutoMapperHelper.Map<PurchaseDetail>(input);
                     data.ApprovalQty = input.InQty;
                     data.AdvicePrice = data.InPrice;
                     data.InSumMoney = data.InQty * data.InPrice;
@@ -1161,7 +1161,7 @@ namespace CDGService.WebAPI.DataCore
                         SalePrice = Detaildata.SalePrice,
                         SupplierId = Detaildata.SupplierId,
                     };
-                    // Mapper.Map<PurchaseDetailInPut>(Detaildata);
+                    // AutoMapperHelper.Map<PurchaseDetailInPut>(Detaildata);
 
                     var flag = await AddPurchaseDetailAsync(data, true);
                     return flag;
@@ -1244,7 +1244,7 @@ namespace CDGService.WebAPI.DataCore
                     var userId = await _getUserInfo.GetCurrentUserIdAsync();
                     var OrderDetailData = Sum.GroupBy(t => new { t.purchaseRequest.CenterId, t.MedicalItemId, t.InPrice, t.SalePrice });
                     PurchaseOrder data = null;
-                    data = Mapper.Map<PurchaseOrder>(inPut);
+                    data = AutoMapperHelper.Map<PurchaseOrder>(inPut);
                     data.Id = Guid.NewGuid().tostring32();
                     data.Modifier = userId;
                     data.ModifierDate = DateTime.Now;
@@ -1465,13 +1465,13 @@ namespace CDGService.WebAPI.DataCore
                     {
                         NoIndex = (input.PageNum - 1) * input.PageSize;
                         var Dialysis = await PaginatedList<PurchaseOrder>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<OrderQueryOutPut[]>(Dialysis);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Dialysis);
 
                     }
                     else
                     {
                         var datas = await Sum.ToArrayAsync();
-                        result = Mapper.Map<OrderQueryOutPut[]>(datas);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(datas);
                     }
                     foreach (var item in result)
                     {
@@ -1605,7 +1605,7 @@ namespace CDGService.WebAPI.DataCore
                     });
                     int NoIndex = 1;
 
-                    result = Mapper.Map<OrderDetailData[]>(data);
+                    result = AutoMapperHelper.Map<OrderDetailData[]>(data);
 
                     //更新库存
                     //  if (listStockData == null || listStockData.Count <= 0)
@@ -1623,7 +1623,7 @@ namespace CDGService.WebAPI.DataCore
                         item.no = NoIndex;
                         NoIndex++;
                     }
-                    orderData = Mapper.Map<OrderQueryOutPut>(OrderData);
+                    orderData = AutoMapperHelper.Map<OrderQueryOutPut>(OrderData);
                     outPut.orderDetailData = result;
                     outPut.orderData = orderData;
                 }
@@ -2147,12 +2147,12 @@ namespace CDGService.WebAPI.DataCore
                 if (input.PageNum > 0 && input.PageSize > 0)
                 {
                     var pagegdata = await PaginatedList<ReturnRequest>.CreateAsync(data, input.PageNum, input.PageSize);
-                    returns = Mapper.Map<ReturnRequestOutPut[]>(pagegdata.ToArray());
+                    returns = AutoMapperHelper.Map<ReturnRequestOutPut[]>(pagegdata.ToArray());
                     count = pagegdata.Count;
                 }
                 else
                 {
-                    returns = Mapper.Map<ReturnRequestOutPut[]>(await data.ToArrayAsync());
+                    returns = AutoMapperHelper.Map<ReturnRequestOutPut[]>(await data.ToArrayAsync());
                     count = returns.Count();
                 }
                 return new PageData<ReturnRequestOutPut[]>(returns, count);
@@ -2173,7 +2173,7 @@ namespace CDGService.WebAPI.DataCore
                     predicate = predicate.And(t => t.ReturnId == ReturnId);
 
                 var data = await ReturnDetailsStore.Entities.Include(t => t.MedicalItem).Include(t => t.Unit).Where(predicate).ToListAsync();
-                var resutl = Mapper.Map<List<ReturnDetailsOutPut>>(data);
+                var resutl = AutoMapperHelper.Map<List<ReturnDetailsOutPut>>(data);
 
                 resutl.Add(new ReturnDetailsOutPut()
                 {
@@ -2437,7 +2437,7 @@ namespace CDGService.WebAPI.DataCore
                         //    if (!item.MedicaItemTypeCount.HasValue || item.MedicaItemTypeCount <= 0)
                         //        await UpdatePu(item.Id);
                         //}
-                        result = Mapper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
+                        result = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
                         count = result.Length;
                     }
 
@@ -2622,7 +2622,7 @@ namespace CDGService.WebAPI.DataCore
                         var time = Convert.ToDateTime("2023-05-05");
                         purchaseRequestsData = await Sum.ToListAsync();
                         purchaseRequestsData.RemoveAll(t => t.Catalogue == "97277431fc754297853d9d20cb423b50" && t.AuditDate < time);
-                        result = Mapper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
+                        result = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
                         count = result.Length;
                     }
 
@@ -2826,7 +2826,7 @@ namespace CDGService.WebAPI.DataCore
                     decimal? price = 0; //ListDetaildata.Sum(t => t.InPrice);
                     decimal? SalesTotalPrice = 0;
                     decimal? TotalQty = 0;
-                    result = Mapper.Map<PurchaseDetailOutPut[]>(Sum).OrderByDescending(t => t.coefficient).ToList();
+                    result = AutoMapperHelper.Map<PurchaseDetailOutPut[]>(Sum).OrderByDescending(t => t.coefficient).ToList();
                     int NoIndex = 1;
                     //更新库存
                     //  if (listStockData == null || listStockData.Count <= 0)
@@ -2926,7 +2926,7 @@ namespace CDGService.WebAPI.DataCore
                     Requestdata.ApprovalTotalQty = TotalQty;
                     PurchaseRequestStore.Update(Requestdata);
                     _unitOfWork.SaveChanges();
-                    var data = Mapper.Map<PurchaseRequestOutPut>(Requestdata);
+                    var data = AutoMapperHelper.Map<PurchaseRequestOutPut>(Requestdata);
 
                     var aconfig = await GetApprovalConfigAsync(1, user.Id);
                     if (aconfig.Length > 0 && aconfig.FirstOrDefault().PurchSubmitLevel >= 1)
@@ -3029,7 +3029,7 @@ namespace CDGService.WebAPI.DataCore
                         //    if (!item.MedicaItemTypeCount.HasValue || item.MedicaItemTypeCount <= 0)
                         //        await UpdatePu(item.Id);
                         //} 
-                        result = Mapper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
+                        result = AutoMapperHelper.Map<PurchaseRequestOutPut[]>(purchaseRequestsData);
                         count = result.Length;
                     }
 
@@ -3135,7 +3135,7 @@ namespace CDGService.WebAPI.DataCore
                     decimal? price = 0; //ListDetaildata.Sum(t => t.InPrice);
                     decimal? SalesTotalPrice = 0;
                     decimal? TotalQty = 0;
-                    result = Mapper.Map<PurchaseDetailOutPut[]>(Sum).OrderByDescending(t => t.coefficient).ToList();
+                    result = AutoMapperHelper.Map<PurchaseDetailOutPut[]>(Sum).OrderByDescending(t => t.coefficient).ToList();
                     int NoIndex = 1;
                     //更新库存
                     //  if (listStockData == null || listStockData.Count <= 0)
@@ -3189,7 +3189,7 @@ namespace CDGService.WebAPI.DataCore
                     Requestdata.ApprovalTotalQty = TotalQty;
                     PurchaseRequestStore.Update(Requestdata);
                     _unitOfWork.SaveChanges();
-                    var data = Mapper.Map<PurchaseRequestOutPut>(Requestdata);
+                    var data = AutoMapperHelper.Map<PurchaseRequestOutPut>(Requestdata);
 
 
                     purchaseOutPut.purchaseRequest = data;
@@ -3565,7 +3565,7 @@ namespace CDGService.WebAPI.DataCore
                         var detailData = Mainitem.Value.GroupBy(t => new { t.MedicalItemId, t.InPrice });
 
                         PurchaseOrder data = null;
-                        data = Mapper.Map<PurchaseOrder>(inPut);
+                        data = AutoMapperHelper.Map<PurchaseOrder>(inPut);
                         data.Id = Guid.NewGuid().tostring32();
                         data.Modifier = userId;
                         data.ModifierDate = DateTime.Now;
@@ -3755,11 +3755,11 @@ namespace CDGService.WebAPI.DataCore
                     {
                         NoIndex = (input.PageNum - 1) * input.PageSize;
                         var Dialysis = await PaginatedList<PurchaseOrder>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<OrderQueryOutPut[]>(Dialysis);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Dialysis);
                     }
                     else
                     {
-                        result = Mapper.Map<OrderQueryOutPut[]>(Sum);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Sum);
                     }
                     foreach (var item in result)
                     {
@@ -3922,11 +3922,11 @@ namespace CDGService.WebAPI.DataCore
                     {
                         NoIndex = (input.PageNum - 1) * input.PageSize;
                         var Dialysis = await PaginatedList<PurchaseOrder>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<OrderQueryOutPut[]>(Dialysis);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Dialysis);
                     }
                     else
                     {
-                        result = Mapper.Map<OrderQueryOutPut[]>(Sum);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Sum);
                     }
                     foreach (var item in result)
                     {
@@ -4033,11 +4033,11 @@ namespace CDGService.WebAPI.DataCore
                     {
                         NoIndex = (input.PageNum - 1) * input.PageSize;
                         var Dialysis = await PaginatedList<PurchaseOrder>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<OrderQueryOutPut[]>(Dialysis);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Dialysis);
                     }
                     else
                     {
-                        result = Mapper.Map<OrderQueryOutPut[]>(Sum);
+                        result = AutoMapperHelper.Map<OrderQueryOutPut[]>(Sum);
                     }
                     foreach (var item in result)
                     {
@@ -4127,7 +4127,7 @@ namespace CDGService.WebAPI.DataCore
                     });
                     int NoIndex = 1;
 
-                    result = Mapper.Map<OrderDetailData[]>(newData);
+                    result = AutoMapperHelper.Map<OrderDetailData[]>(newData);
 
                     await GetGoodsInStockdInfo();
                     await GetMonthUsageStatistics(DateTime.Now);//更新月均
@@ -4205,7 +4205,7 @@ namespace CDGService.WebAPI.DataCore
                             item.SiSpecifications = item.SiSpecifications.Replace(',', '，');
 
                     }
-                    orderData = Mapper.Map<OrderQueryOutPut>(OrderData);
+                    orderData = AutoMapperHelper.Map<OrderQueryOutPut>(OrderData);
 
                     if (RoleData != null && RoleData.level >= 1)
                     {
@@ -4321,7 +4321,7 @@ namespace CDGService.WebAPI.DataCore
                     });
                     int NoIndex = 1;
 
-                    result = Mapper.Map<OrderDetailData[]>(newData);
+                    result = AutoMapperHelper.Map<OrderDetailData[]>(newData);
                     //更新库存
                     //  if (listStockData == null || listStockData.Count <= 0)
                     await GetGoodsInStockdInfo();
@@ -4337,7 +4337,7 @@ namespace CDGService.WebAPI.DataCore
                         item.no = NoIndex;
                         NoIndex++;//2102722 2102829 
                     }
-                    orderData = Mapper.Map<OrderQueryOutPut>(OrderData);
+                    orderData = AutoMapperHelper.Map<OrderQueryOutPut>(OrderData);
 
                     outPut.orderDetailData = result;
                     outPut.orderData = orderData;
@@ -6661,12 +6661,12 @@ WHERE  a.MedicalId  =b.MedicalId AND a.CenterId=b.CenterId  and a.IsCurrentUse =
                         MsSqlHelper.GetSingleObj().ExecSqlTran(ListSql);
                     }
 
-                    LogHelper.WriteCommLog($"档案价格更新完毕.");
+                    CDGService.WebAPI.Extenstions.LogHelper.WriteCommLog($"档案价格更新完毕.");
                 }
                 catch (Exception ex)
                 {
                     Flag = false;
-                    LogHelper.WriteCommLog($"档案价格更新错误：{ex + ""}");
+                    CDGService.WebAPI.Extenstions.LogHelper.WriteCommLog($"档案价格更新错误：{ex + ""}");
                 }
                 return Flag;
 

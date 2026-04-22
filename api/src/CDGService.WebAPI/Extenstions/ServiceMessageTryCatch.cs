@@ -78,7 +78,7 @@ namespace CDGService.WebAPI.Extenstions
                         exception = exception.InnerException;
                     var s = Activator.CreateInstance(gtype, exception);
                     var ee = Convert.ChangeType(s, gtype);
-                    var adviceTaskSource = TaskCompletionSource.Create(d.GetTaskType());
+                    var adviceTaskSource = CDGService.Data.Threading.TaskCompletionSource.Create(d.GetTaskType());
                     adviceTaskSource.SetResult(ee);
                     LogHelper.WriteErrLog($"调用方法{invocation.Method?.Name}出现异常：{exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
                     invocation.ReturnValue = adviceTaskSource.Task;

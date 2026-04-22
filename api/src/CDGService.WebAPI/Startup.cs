@@ -16,6 +16,7 @@ using CDGService.Store;
 using CDGService.Store.Extensions;
 using CDGService.WebAPI.Controllers;
 using CDGService.WebAPI.DataCore;
+using CDGService.WebAPI.Dto;
 using CDGService.WebAPI.Extenstions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;

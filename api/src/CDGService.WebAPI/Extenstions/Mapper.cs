@@ -27,3 +27,22 @@ namespace CDGService.WebAPI.Extenstions
         }
     }
 }
+
+// Add this class to global namespace to override AutoMapper.Mapper
+public static class Mapper
+{
+    public static TDestination Map<TDestination>(object source)
+    {
+        return CDGService.WebAPI.Extenstions.AutoMapperHelper.Map<TDestination>(source);
+    }
+
+    public static TDestination Map<TSource, TDestination>(TSource source)
+    {
+        return CDGService.WebAPI.Extenstions.AutoMapperHelper.Map<TSource, TDestination>(source);
+    }
+
+    public static TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
+    {
+        return CDGService.WebAPI.Extenstions.AutoMapperHelper.Map(source, destination);
+    }
+}

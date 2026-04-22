@@ -79,7 +79,7 @@ namespace CDGService.WebAPI.Extenstions
             var manager = new ApplicationPartManager();
             manager.ApplicationParts.Add(new AssemblyPart(assembly));
             manager.FeatureProviders.Add(new ControllerFeatureProvider());
-            Mapper.Initialize(cfg => cfg.AddProfiles(assembly));
+
 
             var feature = new ControllerFeature();
             manager.PopulateFeature(feature);

@@ -129,7 +129,7 @@ namespace CDGService.WebAPI.Controllers
         public virtual Task<ServiceMessage<string>> UpLoadFile([FromRoute] string fileName, [FromRoute] DocumentCatalog catalog)
         {
             string catalogName = catalog.ToChinese();
-            if (catalogName.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(catalogName))
                 throw new Exception($"文档目录不能为空");
 
             string dir = Path.Combine(_documentSetting.DocumentRoot, catalog.ToChinese());
@@ -600,7 +600,7 @@ namespace CDGService.WebAPI.Controllers
         {
             string catalogName = "Excel导入";// catalog.ToChinese();
             string d = Path.GetExtension(fileName);//扩展名 “.docx” 
-            if (catalogName.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(catalogName))
                 throw new Exception($"文档目录不能为空");
             if (d != ".xlsx" && d != ".xls")
                 throw new Exception($"请导入excle文件");

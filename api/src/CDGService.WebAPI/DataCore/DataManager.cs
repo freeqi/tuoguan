@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Store;
@@ -34,9 +34,10 @@ namespace CDGService.WebAPI.DataCore
         private readonly Data.DictionaryCode _dictionaryCode;
 
         private readonly IDataReceive _dataReceive;
+        private readonly IMapper _mapper;
         private List<PurchSubmit> _purchSubmit = new List<PurchSubmit>();
         private List<OrderPricingRole> _orderPricingRole = new List<OrderPricingRole>();
-        public DataManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IDataReceive dataReceive, IOptions<Data.DocumentSetting> documentSetting, IOptions<Data.DictionaryCode> dictionaryCode, Microsoft.Extensions.Options.IOptions<List<OrderPricingRole>> orderPricingRol, Microsoft.Extensions.Options.IOptions<List<PurchSubmit>> purchSubmit)
+        public DataManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IDataReceive dataReceive, IOptions<Data.DocumentSetting> documentSetting, IOptions<Data.DictionaryCode> dictionaryCode, Microsoft.Extensions.Options.IOptions<List<OrderPricingRole>> orderPricingRol, Microsoft.Extensions.Options.IOptions<List<PurchSubmit>> purchSubmit, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
@@ -47,6 +48,7 @@ namespace CDGService.WebAPI.DataCore
             _orderPricingRole = orderPricingRol.Value;
             _purchSubmit = purchSubmit.Value;
             _dataReceive = dataReceive;
+            _mapper = mapper;
         }
         private IRepository<Log> LogStore => _unitOfWork.GetStore<Log>();
 
@@ -89,7 +91,7 @@ namespace CDGService.WebAPI.DataCore
                 if (logInput == null)
                 {
                     var logs = await LogStore.Entities.Include(x => x.OperatorUser).ThenInclude(x => x.Employee).OrderByDescending(t => t.CreateTime).ToArrayAsync();
-                    result = Mapper.Map<LogOutPut[]>(logs);
+                    result = _mapper.Map<LogOutPut[]>(logs);
                     return new PageData<LogOutPut[]>(result, result.Length);
                 }
                 switch (logInput.Day)
@@ -130,11 +132,11 @@ namespace CDGService.WebAPI.DataCore
                 if (logInput.PageNum > 0 && logInput.PageSize > 0)
                 {
                     var Dialysis = await PaginatedList<Log>.CreateAsync(datas, logInput.PageNum, logInput.PageSize);
-                    result = Mapper.Map<LogOutPut[]>(Dialysis);
+                    result = _mapper.Map<LogOutPut[]>(Dialysis);
                 }
                 else
                 {
-                    result = Mapper.Map<LogOutPut[]>(datas);
+                    result = _mapper.Map<LogOutPut[]>(datas);
                 }
                 int count = datas.Count();
                 // return result;
@@ -155,7 +157,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await SysRegionStore.Entities.ToArrayAsync();
-                    result = Mapper.Map<SysRegionOutput[]>(datas);
+                    result = _mapper.Map<SysRegionOutput[]>(datas);
 
                     SysRegionLoopToAppendChildren(result, curItem);
                 }
@@ -224,7 +226,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await WarehouseCatalogStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<WarehouseCatalogOutPut[]>(datas);
+                    result = _mapper.Map<WarehouseCatalogOutPut[]>(datas);
 
                     LoopToAppendChildren(result, curItem);
                 }
@@ -250,7 +252,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await WarehouseCatalogStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<WarehouseCatalogOutPut[]>(datas);
+                    result = _mapper.Map<WarehouseCatalogOutPut[]>(datas);
 
 
                 }
@@ -320,7 +322,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     else
                     {
-                        data = Mapper.Map<WarehouseCatalog>(input);
+                        data = _mapper.Map<WarehouseCatalog>(input);
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
                         data.Modifier = userId;
@@ -407,7 +409,7 @@ namespace CDGService.WebAPI.DataCore
             return Task.Run(async () =>
             {
                 var data = await WarehouseCatalogStore.GetFirstOrDefaultAsync(t => t.Id == ParentID && t.IsDelete == false);
-                return Mapper.Map<WarehouseCatalogOutPut>(data);
+                return _mapper.Map<WarehouseCatalogOutPut>(data);
             });
 
         }
@@ -599,10 +601,10 @@ FROM
                     {
                         var Sum = MedicalItemRecordStore.Entities.Include(t => t.SpecificationsUnits).Include(t => t.PackageUnits).Include(t => t.doseUnits).Include(t => t.supplier).Include(t => t.MedicalDrugExtensions).Include(t => t.dosageForm).Include(t => t.ProcurementUnits).Where(predicate).OrderBy(t => t.ApplyState);
                         var Dialysis = await PaginatedList<MedicalItemRecord>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        // result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                        // result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
                         count = Sum.Count();
 
-                        result = Mapper.Map<MedicalItemRecordOutPut[]>(Dialysis);
+                        result = _mapper.Map<MedicalItemRecordOutPut[]>(Dialysis);
                         int i = 0;
 
 
@@ -627,7 +629,7 @@ FROM
                             var dd = Dialysis[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == input.CenterId).FirstOrDefault();
                             if (dd == null) dd = Dialysis[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == "0").FirstOrDefault();
                             //  dd.centerDialysis = MedicalDrugExtensionStore.Entities.Include(t => t.centerDialysis).FirstOrDefaultAsync(t => t.Id == dd.Id).Result.centerDialysis;
-                            item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                            item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                             item.MedicalDrugExtension.CenterName = "";
                             if (input.CenterId != "0" && item.MedicalDrugExtension.CenterId == "0")
                                 item.MedicalDrugExtension.CenterName = "统一价";
@@ -637,7 +639,7 @@ FROM
                     else
                     {
                         var datas = await MedicalItemRecordStore.Entities.Include(t => t.SpecificationsUnits).Include(t => t.PackageUnits).Include(t => t.doseUnits).Include(t => t.supplier).Include(t => t.MedicalDrugExtensions).Include(t => t.dosageForm).Include(t => t.ProcurementUnits).Where(predicate).Skip(0).Take(30).ToArrayAsync();
-                        result = Mapper.Map<MedicalItemRecordOutPut[]>(datas);
+                        result = _mapper.Map<MedicalItemRecordOutPut[]>(datas);
                         count = result.Length;
                         int i = 0;
                         foreach (var item in result)
@@ -647,7 +649,7 @@ FROM
                             var dd = datas[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == input.CenterId).FirstOrDefault();
                             if (dd == null) dd = datas[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == "0").FirstOrDefault();
                             // dd.centerDialysis = MedicalDrugExtensionStore.Entities.Include(t => t.centerDialysis).FirstOrDefaultAsync(t => t.Id == dd.Id).Result.centerDialysis;
-                            item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                            item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                             item.MedicalDrugExtension.CenterName = "";
                             if (input.CenterId != "0" && item.MedicalDrugExtension.CenterId == "0")
                                 item.MedicalDrugExtension.CenterName = "统一价";
@@ -676,7 +678,7 @@ FROM
                 var data = await MedicalDrugExtensionStore.Entities.Include(t => t.medicalItemRecord).Where(t => t.IsCurrentUse == true && t.RetailPrice > t.SocialSecurityPrice && t.medicalItemRecord.IsDelete == IsDel && t.medicalItemRecord.HiCenterCode + "" != "" && t.medicalItemRecord.MedicalItemType == MedType).Select(t => t.MedicalId).ToListAsync();
 
                 var medData = await MedicalItemRecordStore.Entities.Include(t => t.SpecificationsUnits).Include(t => t.PackageUnits).Include(t => t.doseUnits).Include(t => t.supplier).Include(t => t.MedicalDrugExtensions).Include(t => t.dosageForm).Where(t => data.Contains(t.Id)).ToArrayAsync();
-                result = Mapper.Map<MedicalItemRecordOutPut[]>(medData);
+                result = _mapper.Map<MedicalItemRecordOutPut[]>(medData);
                 count = result.Length;
                 int i = 0;
                 foreach (var item in result)
@@ -684,7 +686,7 @@ FROM
                     // GetManId(datas[i].WareHouseIds, item.WareHouseId);
                     //  GetFromManId(medData[i].Form, item.Forms);
                     var dd = medData[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == "0").FirstOrDefault();
-                    item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                    item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                     i++;
                 }
                 return new PageData<MedicalItemRecordOutPut[]>(result, count);
@@ -738,7 +740,7 @@ FROM
             var userId = _getUserInfo.GetCurrentUserIdAsync().Result;
             foreach (var item in da)
             {
-                MedicalDrugExtension medicalDrugExtension = new MedicalDrugExtension();// Mapper.Map<MedicalDrugExtension>(input);
+                MedicalDrugExtension medicalDrugExtension = new MedicalDrugExtension();// _mapper.Map<MedicalDrugExtension>(input);
                 medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                 medicalDrugExtension.DataState = 1;
                 medicalDrugExtension.IsCurrentUse = true;
@@ -954,7 +956,7 @@ FROM
                             MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                         }
 
-                        MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(input.MedicalDrugExtension);
+                        MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(input.MedicalDrugExtension);
                         medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                         medicalDrugExtension.DataState = 1;
                         medicalDrugExtension.CenterId = "0";
@@ -973,7 +975,7 @@ FROM
                     else
                     {
 
-                        data = Mapper.Map<MedicalItemRecord>(input);
+                        data = _mapper.Map<MedicalItemRecord>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         List<string> Main = new List<string>();
                         GetManId(data.WareHouseIds, Main, caset);
@@ -1117,7 +1119,7 @@ FROM
 
                         MedicalItemRecordStore.Insert(data);
 
-                        MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(input.MedicalDrugExtension);
+                        MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(input.MedicalDrugExtension);
                         medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                         medicalDrugExtension.DataState = 1;
                         medicalDrugExtension.IsCurrentUse = true;
@@ -1188,7 +1190,7 @@ FROM
                      //else
                      //{
                      //    medicalDrugExtension = await MedicalDrugExtensionStore.GetFirstOrDefaultAsync(t => t.CenterId == input.CenterId);
-                     medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(input);
+                     medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(input);
                      medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                      // medicalDrugExtension.DataState = 1;
                      medicalDrugExtension.IsCurrentUse = true;
@@ -1227,7 +1229,7 @@ FROM
                 if (MedicalId == "")
                     throw new Exception(MessageFormater.PrameterNeedProvider("请提供物品ID"));
                 var medicalDrugExtensions = await MedicalDrugExtensionStore.Entities.Include(t => t.centerDialysis).Include(t => t.medicalItemRecord).Where(t => t.MedicalId == MedicalId && t.IsCurrentUse == true).OrderBy(t => t.CenterId).ToArrayAsync();
-                medicalDrugExtensionOutputs = Mapper.Map<MedicalDrugExtensionOutput[]>(medicalDrugExtensions);
+                medicalDrugExtensionOutputs = _mapper.Map<MedicalDrugExtensionOutput[]>(medicalDrugExtensions);
                 return medicalDrugExtensionOutputs;
             });
 
@@ -1437,9 +1439,9 @@ FROM
                     {
                         throw new Exception("未能获取到数据详情");
                     }
-                    result = Mapper.Map<MedicalItemRecordOutPut>(datas);
+                    result = _mapper.Map<MedicalItemRecordOutPut>(datas);
                     var dd = datas.MedicalDrugExtensions.Where(t => t.IsCurrentUse && t.CenterId == "0").FirstOrDefault();
-                    result.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                    result.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                     //   result.WareHouseId.Clear();
                     result.Forms.Clear();
                     GetFromManId(datas.Form, result.Forms);
@@ -1539,7 +1541,7 @@ FROM
                     else
                     {
 
-                        data = Mapper.Map<Supplier>(input);
+                        data = _mapper.Map<Supplier>(input);
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
                         data.Modifier = userId;
@@ -1655,15 +1657,15 @@ FROM
                     {
                         var Sum = SupplierStore.Entities.Where(predicate).OrderBy(t => t.SupCode);
                         var Dialysis = await PaginatedList<Supplier>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        // result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                        // result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
                         count = Sum.Count();
 
-                        result = Mapper.Map<SupplierOutPut[]>(Dialysis);
+                        result = _mapper.Map<SupplierOutPut[]>(Dialysis);
                     }
                     else
                     {
                         var datas = await SupplierStore.Entities.Where(predicate).OrderBy(t => t.SupCode).ToArrayAsync();
-                        result = Mapper.Map<SupplierOutPut[]>(datas);
+                        result = _mapper.Map<SupplierOutPut[]>(datas);
                         count = result.Length;
                     }
 
@@ -1723,7 +1725,7 @@ FROM
                 try
                 {
                     var datas = await DosageFormStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<DosageFormOutput[]>(datas);
+                    result = _mapper.Map<DosageFormOutput[]>(datas);
                     LoopToAppendChildren(result, curItem);
                     // 6.14  9.11 18.32
                     //6.13   9.31 18.52
@@ -1751,7 +1753,7 @@ FROM
                 try
                 {
                     var datas = await DosageFormStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<DosageFormOutput[]>(datas);
+                    result = _mapper.Map<DosageFormOutput[]>(datas);
 
 
                 }
@@ -1776,7 +1778,7 @@ FROM
                 try
                 {
                     var datas = await DosageFormStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<DosageFormCenterOutput[]>(datas);
+                    result = _mapper.Map<DosageFormCenterOutput[]>(datas);
 
 
                 }
@@ -1845,7 +1847,7 @@ FROM
                     }
                     else
                     {
-                        data = Mapper.Map<DosageForm>(input);
+                        data = _mapper.Map<DosageForm>(input);
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
                         data.Modifier = userId;
@@ -1922,7 +1924,7 @@ FROM
             return Task.Run(async () =>
             {
                 var data = await DosageFormStore.GetFirstOrDefaultAsync(t => t.Id == ParentID && t.IsDelete == false);
-                return Mapper.Map<DosageFormOutput>(data);
+                return _mapper.Map<DosageFormOutput>(data);
             });
 
         }
@@ -2029,7 +2031,7 @@ FROM
                     var datas = MedicalUnitStore.Entities.Where(predicate).OrderBy(t => t.SortNum).OrderBy(t => t.UnitType);
                     var unitData = await PaginatedList<MedicalUnit>.CreateAsync(datas, input.PageNum, input.PageSize);
 
-                    result = Mapper.Map<MedicalUnitOutput[]>(unitData);
+                    result = _mapper.Map<MedicalUnitOutput[]>(unitData);
                     count = datas.Count();
 
                 }
@@ -2072,7 +2074,7 @@ FROM
                     }
                     else
                     {
-                        data = Mapper.Map<MedicalUnit>(input);
+                        data = _mapper.Map<MedicalUnit>(input);
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
                         data.Modifier = userId;
@@ -2180,7 +2182,7 @@ FROM
 
                     var datas = UseWayStore.Entities.Where(predicate);
                     var unitData = await PaginatedList<UseWay>.CreateAsync(datas, input.PageNum, input.PageSize);
-                    result = Mapper.Map<UseWayOutput[]>(unitData);
+                    result = _mapper.Map<UseWayOutput[]>(unitData);
                     count = datas.Count();
                 }
                 catch (Exception ex)
@@ -2226,7 +2228,7 @@ FROM
                     }
                     else
                     {
-                        data = Mapper.Map<UseWay>(input);
+                        data = _mapper.Map<UseWay>(input);
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
                         data.Modifier = userId;
@@ -2409,7 +2411,7 @@ FROM
                         //    predicate = predicate.And(t => t.BZSL.Contains(input.Packaging));
                     }
                     result = await SI_YPMLSStore.Entities.Where(predicate).Skip(0).Take(450).ToArrayAsync();
-                    //  result = Mapper.Map<MedicalItemRecordOutPut[]>(datas);
+                    //  result = _mapper.Map<MedicalItemRecordOutPut[]>(datas);
                     //本地
 
                     //  searchInput = new MedicalItemRecordSearchInput() { Brand = input.MedicalItemInput.Brand, MedicalItemType = 1, Manufacturer = input.MedicalItemInput.Manufacturer, Name = input.MedicalItemInput.YpName, PageNum = 1, PageSize = 100 };
@@ -2429,7 +2431,7 @@ FROM
                         }
                     }
                     var BDItems = await MedicalItemRecordStore.Entities.Include(t => t.SpecificationsUnits).Include(t => t.PackageUnits).Include(t => t.doseUnits).Include(t => t.supplier).Include(t => t.MedicalDrugExtensions).Include(t => t.dosageForm).Where(Itempredicate).Skip(0).Take(80).ToArrayAsync();
-                    result1 = Mapper.Map<MedicalItemRecordOutPut[]>(BDItems);
+                    result1 = _mapper.Map<MedicalItemRecordOutPut[]>(BDItems);
                     count = result1.Length;
                     int i = 0;
                     foreach (var item in result1)
@@ -2437,7 +2439,7 @@ FROM
                         // GetManId(datas[i].WareHouseIds, item.WareHouseId);
                         //GetFromManId(result1[i].Form, item.Forms);
                         var dd = BDItems[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse).FirstOrDefault();
-                        item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                        item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                         i++;
                         result1 = result1.OrderBy(t => t.HiCenterCode).ToArray();
                     }
@@ -2507,7 +2509,7 @@ FROM
                     //    }
                     //    result = await SI_ZLXMStore.Entities.Where(predicate1).Skip(0).Take(150).ToArrayAsync();
                     //}
-                    //  result = Mapper.Map<MedicalItemRecordOutPut[]>(datas);
+                    //  result = _mapper.Map<MedicalItemRecordOutPut[]>(datas);
                     //本地
 
                     searchInput = new MedicalItemRecordSearchInput() { MedicalItemType = 5, Name = input.BDItemName, Manufacturer = input.Manufacturer };
@@ -2581,7 +2583,7 @@ FROM
 
                     var MedicaltData = await PaginatedList<MedicalItemRecord>.CreateAsync(datas, input.PageNum, input.PageSize);
 
-                    result1 = Mapper.Map<MedicalItemRecordOutPut[]>(MedicaltData);
+                    result1 = _mapper.Map<MedicalItemRecordOutPut[]>(MedicaltData);
                     count = MedicaltData.Count;
                     List<string> hicode = MedicaltData.Select(t => t.NationItemCode).ToList();
                     if (input.ItemType == 1)
@@ -2594,7 +2596,7 @@ FROM
                         // GetManId(datas[i].WareHouseIds, item.WareHouseId);
                         // GetFromManId(datas[i].Form, item.Forms);
                         var dd = MedicaltData.Where(t => t.Id == item.Id).First().MedicalDrugExtensions.Where(t => t.IsCurrentUse).FirstOrDefault();
-                        item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                        item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                         i++;
                     }
 
@@ -2750,7 +2752,7 @@ FROM
                 //    }
                 //}
                 //var BDItems = await MedicalItemRecordStore.Entities.Include(t => t.SpecificationsUnits).Include(t => t.PackageUnits).Include(t => t.doseUnits).Include(t => t.supplier).Include(t => t.MedicalDrugExtensions).Include(t => t.dosageForm).Where(Itempredicate).Skip(0).Take(80).ToArrayAsync();
-                //result1 = Mapper.Map<MedicalItemRecordOutPut[]>(BDItems);
+                //result1 = _mapper.Map<MedicalItemRecordOutPut[]>(BDItems);
 
 
                 string BDSQLWhere = "";
@@ -3306,7 +3308,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                             t.Packaging = t.ProcurementPackage = t.Specifications = $"{MedJiaGe.RetailPrice.ToFloorRound()}元/{t.SpecificationsUnits.SpeUnitCHS}";
                     });
                     result.ToList().ForEach(t => t.MedicalDrugExtensions = null);
-                    //result = Mapper.Map<CenterMedicalItemRecordOutPut[]>(datas);
+                    //result = _mapper.Map<CenterMedicalItemRecordOutPut[]>(datas);
                     // 
                     //int i = 0;  
                     //foreach (var item in result)
@@ -3314,7 +3316,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                     //    GetManId(datas[i].WareHouseIds, item.WareHouseId);
                     //    GetFromManId(datas[i].Form, item.Forms);
                     //    var dd = datas[i].MedicalDrugExtensions.Where(t => t.IsCurrentUse).FirstOrDefault();
-                    //    item.MedicalDrugExtension = dd != null ? Mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
+                    //    item.MedicalDrugExtension = dd != null ? _mapper.Map<MedicalDrugExtensionOutput>(dd) : new MedicalDrugExtensionOutput();
                     //    i++;
                     //} 
                 }
@@ -3338,7 +3340,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                 try
                 {
                     var datas = await WarehouseCatalogStore.Entities.ToArrayAsync();
-                    result = Mapper.Map<CenterWarehouseCatalogOutPut[]>(datas);
+                    result = _mapper.Map<CenterWarehouseCatalogOutPut[]>(datas);
 
 
                 }
@@ -3366,7 +3368,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                     centerIs.Add("0");
                     centerIs.Add(CenterId);
                     result = await MedicalDrugExtensionStore.Entities.Where(t => centerIs.Contains(t.CenterId) && t.DataState == 1).ToListAsync();
-                    //result = Mapper.Map<CenterWarehouseCatalogOutPut[]>(datas);
+                    //result = _mapper.Map<CenterWarehouseCatalogOutPut[]>(datas);
                     //int count = result.Count;
                     //for (int i = 0; i < count; i++)
                     //{
@@ -3426,7 +3428,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                     Expression<Func<DictionaryType, bool>> predicate = t => t.IsDelete == IsDel && typeList.Contains(t.Name);
 
                     var datas = await DictionaryTypeStore.Entities.Where(predicate).ToArrayAsync();
-                    result = Mapper.Map<DictionaryTypeOutPut[]>(datas);
+                    result = _mapper.Map<DictionaryTypeOutPut[]>(datas);
 
                 }
                 catch (Exception ex)
@@ -3464,7 +3466,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                         //
                     }
                     var datas = await SystemDictionaryStore.Entities.Include(t => t.DictionaryType).Where(predicate).OrderBy(t => t.ShowSortNo).ToArrayAsync();
-                    result = Mapper.Map<SystemDictionaryOutPut[]>(datas);
+                    result = _mapper.Map<SystemDictionaryOutPut[]>(datas);
 
                 }
                 catch (Exception ex)
@@ -3590,7 +3592,7 @@ left join MedicalUnits as f on f.Id = a.DoseUnit
                     var groupData = data.GroupBy(t => t.MainMedId);
                     foreach (var item in groupData)
                     {
-                        var result = Mapper.Map<MRelevancyOutPut>(item.First());
+                        var result = _mapper.Map<MRelevancyOutPut>(item.First());
                         //获取主档案
                         var main = item.First().MainMed;
                         if (main == null)

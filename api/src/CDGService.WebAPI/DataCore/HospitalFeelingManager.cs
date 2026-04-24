@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Datas;
@@ -23,13 +23,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly string _ClassName;
-        public HospitalFeelingManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting)
+        private readonly IMapper _mapper;
+        public HospitalFeelingManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting, IMapper mapper)
         {
             _ClassName = GetType().Name;//当前类名称
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _documentSetting = documentSetting.Value;
+            _mapper = mapper;
         }
         private IRepository<OutpatientDetailsLog> OutpatientDetailsLogStore => _unitOfWork.GetStore<OutpatientDetailsLog>();
         private IRepository<OutpatientLog> OutpatientLogStore => _unitOfWork.GetStore<OutpatientLog>();
@@ -66,7 +68,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input == null || input.PageNum <= 0 || input.PageSize <= 0)
                     {
                         var datas = await OutpatientDetailsLogStore.Entities.Include(t => t.Patient).ToArrayAsync();
-                        result = Mapper.Map<OutpatientDetailsLogOutPut[]>(datas).ToList();
+                        result = _mapper.Map<OutpatientDetailsLogOutPut[]>(datas).ToList();
                         count = result.Count();
                     }
                     else
@@ -90,10 +92,10 @@ namespace CDGService.WebAPI.DataCore
                             {
                                 var items = Sum.Skip((input.PageNum - 1) * input.PageSize).Take(input.PageSize).ToList();
                                 //var Dialysis = await PaginatedList<OutpatientDetailsLog>.CreateAsync(Sum.ListOutpatientDetailsLog.AsQueryable(), input.PageNum, input.PageSize);
-                                // result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                                // result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
                                 count = Sum.Length;
 
-                                result = Mapper.Map<OutpatientDetailsLogOutPut[]>(items).ToList();
+                                result = _mapper.Map<OutpatientDetailsLogOutPut[]>(items).ToList();
                             }
                         }
                     }
@@ -132,7 +134,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input == null || input.PageNum <= 0 || input.PageSize <= 0)
                     {
                         var datas = await DisinfectionRoomStore.Entities.Include(t => t.CenterDialysis).Include(t => t.Partition).OrderByDescending(t => t.DisinfectionTime).ToArrayAsync();
-                        result = Mapper.Map<DisinfectionRoomOutPut[]>(datas);
+                        result = _mapper.Map<DisinfectionRoomOutPut[]>(datas);
                         count = result.Count();
                     }
                     else
@@ -157,7 +159,7 @@ namespace CDGService.WebAPI.DataCore
                             {
                                 //   var items = Sum.ListOutpatientDetailsLog.Skip((input.PageNum - 1) * input.PageSize).Take(input.PageSize).ToList();
                                 var Dialysis = await PaginatedList<DisinfectionRoom>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                                result = Mapper.Map<DisinfectionRoomOutPut[]>(Dialysis);
+                                result = _mapper.Map<DisinfectionRoomOutPut[]>(Dialysis);
                                 count = Sum.Count();
 
 
@@ -199,7 +201,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input == null || input.PageNum <= 0 || input.PageSize <= 0)
                     {
                         var datas = await InspectionWaterPollutionStore.Entities.Include(t => t.CenterDialysis).ToArrayAsync();
-                        result = Mapper.Map<InspectionWaterPollutionOutPut[]>(datas);
+                        result = _mapper.Map<InspectionWaterPollutionOutPut[]>(datas);
                         count = result.Count();
                     }
                     else
@@ -224,7 +226,7 @@ namespace CDGService.WebAPI.DataCore
                                 
                                 //   var items = Sum.ListOutpatientDetailsLog.Skip((input.PageNum - 1) * input.PageSize).Take(input.PageSize).ToList();
                                 var Dialysis = await PaginatedList<InspectionWaterPollution>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                                result = Mapper.Map<InspectionWaterPollutionOutPut[]>(Dialysis);
+                                result = _mapper.Map<InspectionWaterPollutionOutPut[]>(Dialysis);
                                 count = Sum.Count();
 
 
@@ -330,7 +332,7 @@ namespace CDGService.WebAPI.DataCore
 
                     //        //   var items = Sum.ListOutpatientDetailsLog.Skip((input.PageNum - 1) * input.PageSize).Take(input.PageSize).ToList();
                     //        var Dialysis = await PaginatedList<PatientInfectiousCheck>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                    //        result = Mapper.Map<PatientInfectiousCheckOutPut[]>(Dialysis);
+                    //        result = _mapper.Map<PatientInfectiousCheckOutPut[]>(Dialysis);
                     //        count = Sum.Count();
                     //    }
                     //}
@@ -524,7 +526,7 @@ namespace CDGService.WebAPI.DataCore
 
                     //        //   var items = Sum.ListOutpatientDetailsLog.Skip((input.PageNum - 1) * input.PageSize).Take(input.PageSize).ToList();
                     //        var Dialysis = await PaginatedList<PatientInfectiousCheck>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                    //        result = Mapper.Map<PatientInfectiousCheckOutPut[]>(Dialysis);
+                    //        result = _mapper.Map<PatientInfectiousCheckOutPut[]>(Dialysis);
                     //        count = Sum.Count();
                     //    }
                     //}

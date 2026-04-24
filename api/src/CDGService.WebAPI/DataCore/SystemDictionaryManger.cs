@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Store;
@@ -23,14 +23,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly DictionaryCode _dictionaryCode;
-        public SystemDictionaryManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode)
+        private readonly IMapper _mapper;
+        public SystemDictionaryManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _dictionaryCode = dictionaryCode.Value;
-
+            _mapper = mapper;
         }
         private IRepository<SystemDictionary> SystemDictionaryStore => _unitOfWork.GetStore<SystemDictionary>();
         private IRepository<DictionaryType> DictionaryStore => _unitOfWork.GetStore<DictionaryType>();
@@ -81,7 +82,7 @@ namespace CDGService.WebAPI.DataCore
                     else
                     {
 
-                        data = Mapper.Map<SystemDictionary>(input);
+                        data = _mapper.Map<SystemDictionary>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.TypeCode = typeData.TypeCode;
                         data.Founder = userId;
@@ -133,7 +134,7 @@ namespace CDGService.WebAPI.DataCore
                     {
                         datas.Insert(0, new SystemDictionary() { TypeId = _dictionaryCode.HospitalStateTypeId,   Name = "全部", Id = "0" });
                     }
-                    result = Mapper.Map<SystemDictionaryOutPut[]>(datas);
+                    result = _mapper.Map<SystemDictionaryOutPut[]>(datas);
 
                 }
                 catch (Exception ex)

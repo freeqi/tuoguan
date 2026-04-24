@@ -10,19 +10,12 @@ namespace CDGService.WebAPI.Datas
 
     public class ServiceMessage<T>
     {
-        [Newtonsoft.Json.JsonProperty(PropertyName = "success")]
         public bool Success { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "error")]
         public string Error { get; set; }
-        
-        [Newtonsoft.Json.JsonProperty(PropertyName = "code")]
         public CodeType code { get; set; }
-        
-        [Newtonsoft.Json.JsonProperty(PropertyName = "result")]
         public T Result { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "dataCount")]
         public int DataCount { get; set; }
         public ServiceMessage(T t)
         {

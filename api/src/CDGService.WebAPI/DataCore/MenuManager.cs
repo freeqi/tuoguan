@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Store;
@@ -19,13 +19,14 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-        public MenuManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo)
+        private readonly IMapper _mapper;
+        public MenuManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
-
+            _mapper = mapper;
         }
         private IRepository<Menu> MenuStore => _unitOfWork.GetStore<Menu>();
 
@@ -84,7 +85,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     else
                     {
-                        data = Mapper.Map<Menu>(input);
+                        data = _mapper.Map<Menu>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
@@ -125,7 +126,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await MenuStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<MenuOutPut[]>(datas);
+                    result = _mapper.Map<MenuOutPut[]>(datas);
 
                     LoopToAppendChildren(result, curItem);
                 }
@@ -149,7 +150,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await MenuStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<MenuOutPut[]>(datas); 
+                    result = _mapper.Map<MenuOutPut[]>(datas); 
                     
                 }
                 catch (Exception ex)
@@ -221,7 +222,7 @@ namespace CDGService.WebAPI.DataCore
             return Task.Run(async () =>
             {
                 var data = await MenuStore.GetFirstOrDefaultAsync(t => t.Id == ParentMenuCode && t.IsDelete == false);
-                return Mapper.Map<MenuOutPut>(data);
+                return _mapper.Map<MenuOutPut>(data);
             });
 
         }
@@ -328,7 +329,7 @@ namespace CDGService.WebAPI.DataCore
                     else
                     {
 
-                        data = Mapper.Map<MenuButton>(input);
+                        data = _mapper.Map<MenuButton>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
@@ -372,7 +373,7 @@ namespace CDGService.WebAPI.DataCore
                         predicate = predicate.And(t => t.MenuId == input.MenuId);
                     var datas = await MenuButtonStore.Entities.Where(predicate).ToArrayAsync();
                     var query = from items in datas orderby items.SortNo select items;
-                    result = Mapper.Map<MenuButtonOutPut[]>(query);
+                    result = _mapper.Map<MenuButtonOutPut[]>(query);
                 }
                 catch (Exception ex)
                 {

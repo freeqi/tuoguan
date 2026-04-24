@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Datas;
@@ -23,14 +23,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly DictionaryCode _dictionaryCode;
-        public EquipmentManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode)
+        private readonly IMapper _mapper;
+        public EquipmentManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _dictionaryCode = dictionaryCode.Value;
-
+            _mapper = mapper;
         }
         private IRepository<EquipmentInfo> EquipmentStore => _unitOfWork.GetStore<EquipmentInfo>();
         private IRepository<SystemDictionary> DictionaryStore => _unitOfWork.GetStore<SystemDictionary>();
@@ -79,14 +80,14 @@ namespace CDGService.WebAPI.DataCore
                     {
 
                         var persons = await PaginatedList<EquipmentInfo>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<EquipmentOutPut[]>(persons);
+                        result = _mapper.Map<EquipmentOutPut[]>(persons);
 
                         count = Sum.Count();
                     }
                     else
                     {
                         var datas = await Sum.ToArrayAsync();
-                        result = Mapper.Map<EquipmentOutPut[]>(datas);
+                        result = _mapper.Map<EquipmentOutPut[]>(datas);
                         count = result.Length;
 
                     }

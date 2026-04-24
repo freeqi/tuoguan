@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,6 +25,7 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGetUserInfo _getUserInfo;
         private readonly CollentStartup _purchasManagerService;
+        private readonly IMapper _mapper;
         private readonly IDictionary<LogType, string> _logDscritpionDict = new Dictionary<LogType, string>()
             {
                 {LogType.Exception,"异常" },
@@ -35,11 +36,12 @@ namespace CDGService.WebAPI.DataCore
                 {LogType.UserLogin,"用户登录" },
             {LogType.PassWordModify, "密码修改" }
             };
-        public LogManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, CollentStartup purchasManagerService)
+        public LogManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, CollentStartup purchasManagerService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _getUserInfo = getUserInfo;
             _purchasManagerService = purchasManagerService;
+            _mapper = mapper;
         }
 
         private IRepository<Log> LogStore => _unitOfWork.GetStore<Log>();
@@ -206,7 +208,7 @@ namespace CDGService.WebAPI.DataCore
                 SysPublishInfo data = null;
                 if (string.IsNullOrEmpty(Input.Id))
                 {
-                    data = Mapper.Map<SysPublishInfo>(Input);
+                    data = _mapper.Map<SysPublishInfo>(Input);
                     data.Id = Guid.NewGuid().tostring32();
                     data.Founder = userId;
                     data.FounderDate = DateTime.Now;
@@ -355,7 +357,7 @@ namespace CDGService.WebAPI.DataCore
                     var Sum = SysPublishInfoStore.Entities.Where(predicate).OrderByDescending(t => t.PublishDate);
                     var Dialysis = await PaginatedList<SysPublishInfo>.CreateAsync(Sum, input.PageNum, input.PageSize);
 
-                    result = Mapper.Map<SysPublishInfoOutPut[]>(Dialysis);
+                    result = _mapper.Map<SysPublishInfoOutPut[]>(Dialysis);
                     return new PageData<SysPublishInfoOutPut[]>(result, Dialysis.Count);
                 }
                 catch (Exception ex)
@@ -381,7 +383,7 @@ namespace CDGService.WebAPI.DataCore
                 AppPublishInfo data = null;
                 if (string.IsNullOrEmpty(Input.Id))
                 {
-                    data = Mapper.Map<AppPublishInfo>(Input);
+                    data = _mapper.Map<AppPublishInfo>(Input);
                     data.Id = Guid.NewGuid().tostring32();
                     data.Founder = userId;
                     data.FounderDate = DateTime.Now;
@@ -499,7 +501,7 @@ namespace CDGService.WebAPI.DataCore
                     var Sum = AppPublishInfoStore.Entities.Where(predicate).OrderByDescending(t => t.FounderDate);
                     var Dialysis = await PaginatedList<AppPublishInfo>.CreateAsync(Sum, input.PageNum, input.PageSize);
 
-                    result = Mapper.Map<AppPublishInfoOutPut[]>(Dialysis);
+                    result = _mapper.Map<AppPublishInfoOutPut[]>(Dialysis);
                     return new PageData<AppPublishInfoOutPut[]>(result, Dialysis.Count);
                 }
                 catch (Exception ex)
@@ -523,7 +525,7 @@ namespace CDGService.WebAPI.DataCore
                 AppPublishInfoOutPut outPut = null;
                 var data = await AppPublishInfoStore.GetFirstOrDefaultAsync(t => t.FounderDate == AppPublishInfoStore.Entities.Where(r => r.DataState == 1).Max(r => r.FounderDate));
                 if (data != null)
-                    outPut = Mapper.Map<AppPublishInfoOutPut>(data);
+                    outPut = _mapper.Map<AppPublishInfoOutPut>(data);
 
                 return outPut;
 

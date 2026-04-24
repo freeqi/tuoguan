@@ -17,20 +17,20 @@ namespace CDGService.Data.Datas
         /// <summary>
         /// 机构编码
         /// </summary>
-        public string? DialysisCode { get; set; }
+        public string DialysisCode { get; set; }
         /// <summary>
         /// 机构名称
         /// </summary>
-        public string? DialysisName { get; set; }
+        public string DialysisName { get; set; }
 
         /// <summary>
         /// 简称
         /// </summary>
-        public string? ShortName { get; set; }
+        public string ShortName { get; set; }
         /// <summary>
         /// 所在地区ID
         /// </summary>
-        public string? DialysisRegionID { get; set; }
+        public string DialysisRegionID { get; set; }
         /// <summary>
         /// 地区
         /// </summary>
@@ -40,7 +40,7 @@ namespace CDGService.Data.Datas
         /// 负责人ID
         /// </summary>
 
-        public string? DialysisContactManID { get; set; }
+        public string DialysisContactManID { get; set; }
         /// <summary>
         /// 负责人
         /// </summary>
@@ -56,18 +56,18 @@ namespace CDGService.Data.Datas
         /// <summary>
         ///护士长ID
         /// </summary>
-        public string? HeadNurseId { get; set; }
+        public string HeadNurseId { get; set; }
 
         //   public Employee HeadNurseUser { get; set; }
 
         /// <summary>
         /// 联系电话
         /// </summary>
-        public string? DialysisPhone { get; set; }
+        public string DialysisPhone { get; set; }
         /// <summary>
         /// 详细地址
         /// </summary>
-        public string? DialysisAddress { get; set; }
+        public string DialysisAddress { get; set; }
         /// <summary>
         /// 经度
         /// </summary>
@@ -87,31 +87,31 @@ namespace CDGService.Data.Datas
         /// <summary>
         /// 简介
         /// </summary>
-        public string? DialysisDetails { get; set; }
+        public string DialysisDetails { get; set; }
 
 
-        public string? DialysisImg { get; set; }
+        public string DialysisImg { get; set; }
         ///// <summary>
         ///// 图片
         ///// </summary>
-        public string? DialysisImg1 { get; set; }
+        public string DialysisImg1 { get; set; }
         ///// <summary>
         ///// 图片
         ///// </summary>
-        public string? DialysisImg2 { get; set; }
+        public string DialysisImg2 { get; set; }
         ///// <summary>
         ///// 图片
         ///// </summary>
-        public string? DialysisImg3 { get; set; }
+        public string DialysisImg3 { get; set; }
         ///// <summary>
         ///// 图片
         ///// </summary>
-        public string? DialysisImg4 { get; set; }
+        public string DialysisImg4 { get; set; }
 
-        public string? AddMan { get; set; }
+        public string AddMan { get; set; }
 
         public DateTime? AddTime { get; set; }
-        public string? ModifyMan { get; set; }
+        public string ModifyMan { get; set; }
         public DateTime? ModifyTime { get; set; }
         /// <summary>
         /// 状态
@@ -125,16 +125,16 @@ namespace CDGService.Data.Datas
         /// <summary>
         /// 中心端接口地址
         /// </summary>
-        public string? CenterUrl { get; set; }
+        public string CenterUrl { get; set; }
 
-        public string? NationalCode { get; set; }
-        public string? NationalName { get; set; }
+        public string NationalCode { get; set; }
+        public string NationalName { get; set; }
 
         /// <summary>
         /// 中心端前端地址
         /// </summary>
-        public string? CenterWebURL { get; set; }
+        public string CenterWebURL { get; set; }
 
-        public string? CenterConn { get; set; }
+        public string CenterConn { get; set; }
     }
 }

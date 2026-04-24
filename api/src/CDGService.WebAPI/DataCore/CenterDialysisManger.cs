@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Store;
@@ -27,13 +27,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-        public CenterDialysisManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting)
+        private readonly IMapper _mapper;
+        public CenterDialysisManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _documentSetting = documentSetting.Value;
+            _mapper = mapper;
         }
         private IRepository<CenterDialysis> DialysisStore => _unitOfWork.GetStore<CenterDialysis>();
         private IRepository<SysRegion> SysRegionStore => _unitOfWork.GetStore<SysRegion>();
@@ -108,7 +110,7 @@ namespace CDGService.WebAPI.DataCore
                     else
                     {
 
-                        data = Mapper.Map<CenterDialysis>(input);
+                        data = _mapper.Map<CenterDialysis>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.AddMan = userId;
                         bool flag = true;
@@ -218,7 +220,7 @@ namespace CDGService.WebAPI.DataCore
                     {
                         var datas = await DialysisStore.Entities.Include(t => t.DialysisRegions).Include(t => t.DialysisContactMan).Where(t => t.IsDelete == IsDel).OrderBy(t => t.SortNnm).ToArrayAsync();
 
-                        result = Mapper.Map<CenterDialysisOutPut[]>(datas);
+                        result = _mapper.Map<CenterDialysisOutPut[]>(datas);
                         count = result.Length;
                         int i = 0;
                         foreach (var item in result)
@@ -247,10 +249,10 @@ namespace CDGService.WebAPI.DataCore
                         {
                             var Sum = DialysisStore.Entities.Include(t => t.DialysisRegions).Include(t => t.DialysisContactMan).OrderBy(t => t.SortNnm).Where(predicate);
                             var Dialysis = await PaginatedList<CenterDialysis>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                            // result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                            // result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
                             count = Sum.Count();
 
-                            result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                            result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
                             int i = 0;
                             foreach (var item in result)
                             {
@@ -312,7 +314,7 @@ namespace CDGService.WebAPI.DataCore
             {
                 var data = await DialysisStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
 
-                return Mapper.Map<CenterListOutPut[]>(data);
+                return _mapper.Map<CenterListOutPut[]>(data);
             });
         }
 
@@ -332,7 +334,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await DialysisStore.Entities.Where(t => t.IsDelete == IsDel).ToArrayAsync();
-                    result = Mapper.Map<DialysisMapOutPut[]>(datas);
+                    result = _mapper.Map<DialysisMapOutPut[]>(datas);
 
 
                 }
@@ -371,7 +373,7 @@ namespace CDGService.WebAPI.DataCore
                         if (id + "" != "")
                             predicate = predicate.And(t => t.Id == id);
                         var data = await DialysisStore.Entities.Include(t => t.DialysisRegions).Include(t => t.DialysisContactMan).Where(predicate).ToArrayAsync();
-                        result = Mapper.Map<CenterDialysisOutPut[]>(data);
+                        result = _mapper.Map<CenterDialysisOutPut[]>(data);
                         int i = 0;
                         foreach (var item in result)
                         {

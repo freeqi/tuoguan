@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Dto;
@@ -23,7 +23,8 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly CollentStartup _purchasManagerService;
-        public InformationManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting, CollentStartup purchasManagerService)
+        private readonly IMapper _mapper;
+        public InformationManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<Data.DocumentSetting> documentSetting, CollentStartup purchasManagerService, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
@@ -31,6 +32,7 @@ namespace CDGService.WebAPI.DataCore
             _logManager = logManager;
             _documentSetting = documentSetting.Value;
             _purchasManagerService = purchasManagerService;
+            _mapper = mapper;
         }
 
         //InformationReceiveOutPut
@@ -184,7 +186,7 @@ namespace CDGService.WebAPI.DataCore
                 }
                 bool Flag = true;
                 string userId = await _getUserInfo.GetCurrentUserIdAsync();
-                var data = Mapper.Map<Information>(input);
+                var data = _mapper.Map<Information>(input);
                 data.Id = Guid.NewGuid().tostring32();
                 data.Founder = userId;
                 data.FounderDate = DateTime.Now;
@@ -222,7 +224,7 @@ namespace CDGService.WebAPI.DataCore
                 //调价目录 
                 if (input.noticeMedicalInputs != null && input.noticeMedicalInputs.Length > 0)
                 {
-                    var noticeMedical = Mapper.Map<NoticeMedical[]>(input.noticeMedicalInputs);
+                    var noticeMedical = _mapper.Map<NoticeMedical[]>(input.noticeMedicalInputs);
                     foreach (var item in noticeMedical)
                     {
                         if (item.SalePrice == item.UpSalePrice)
@@ -492,12 +494,12 @@ namespace CDGService.WebAPI.DataCore
                     if (input.PageNum > 0 && input.PageSize > 0)
                     {
                         var msgData = await PaginatedList<Information>.CreateAsync(data, input.PageNum, input.PageSize);
-                        result = Mapper.Map<InformationOutPut[]>(msgData);
+                        result = _mapper.Map<InformationOutPut[]>(msgData);
                         count = msgData.Count;
                     }
                     else
                     {
-                        result = Mapper.Map<InformationOutPut[]>(data.ToArrayAsync().Result);
+                        result = _mapper.Map<InformationOutPut[]>(data.ToArrayAsync().Result);
 
                         count = result.Length;
                     }
@@ -561,10 +563,10 @@ namespace CDGService.WebAPI.DataCore
                     if (input.PageNum > 0 && input.PageSize > 0)
                     {
                         var msgData = await PaginatedList<Feedback>.CreateAsync(data, input.PageNum, input.PageSize);
-                        result = Mapper.Map<FeedbackOutPut[]>(msgData);
+                        result = _mapper.Map<FeedbackOutPut[]>(msgData);
                     }
                     else
-                        result = Mapper.Map<FeedbackOutPut[]>(data.ToArrayAsync().Result);
+                        result = _mapper.Map<FeedbackOutPut[]>(data.ToArrayAsync().Result);
 
                 }
                 catch (Exception ex)
@@ -606,7 +608,7 @@ namespace CDGService.WebAPI.DataCore
 
                 var data = await FeedbackStore.Entities.Include(t => t.user).Include(t => t.feedbackReplys).FirstOrDefaultAsync(t => t.Id == input);
 
-                outPut = Mapper.Map<FeedbackReplysOutPut>(data);
+                outPut = _mapper.Map<FeedbackReplysOutPut>(data);
                 return outPut;
             });
         }

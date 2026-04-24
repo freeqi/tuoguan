@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,15 +32,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly IGetUserInfo _getUserInfo;
         private readonly LogManager _logManager;
         private readonly MenuManager _menuManager;
+        private readonly IMapper _mapper;
 
-        public UserManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, LogManager logManager, MenuManager menuManager)
+        public UserManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, LogManager logManager, MenuManager menuManager, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _getUserInfo = getUserInfo;
             _logManager = logManager;
             _menuManager = menuManager;
-
-
+            _mapper = mapper;
         }
 
         private IRepository<User> UserStore => _unitOfWork.GetStore<User>();
@@ -68,16 +68,9 @@ namespace CDGService.WebAPI.DataCore
                 username = username.Decrypt();
                 //  throw new Exception("用户名错误或该员工已删除" );
                 UserLoginOutPut outPut = new UserLoginOutPut();
-                
-                // 使用安全的查询方式，避免直接比较可能为null的字段
-                var user = await UserStore.Entities.Include(t => t.Employee).FirstOrDefaultAsync(t => 
-                    t.IsDelete == false && 
-                    string.Equals(t.UserName, username, StringComparison.OrdinalIgnoreCase)
-                );
-                
+                var user = await UserStore.Entities.Include(t => t.Employee).Where(t => t.UserName == (username) && t.IsDelete == false && t.Employee.IsDelete == false).FirstOrDefaultAsync();
                 if (user == null) throw new Exception("用户名错误或该员工已删除" + username);
-                if (user.Employee == null || user.Employee.IsDelete) throw new Exception("用户名错误或该员工已删除" + username);
-                if (string.IsNullOrEmpty(user.Pwd) || user.Pwd != pwd.MD5()) throw new Exception("密码错误");
+                if (user.Pwd != pwd.MD5()) throw new Exception("密码错误");
                 if (!user.IsActive)
                     throw new Exception("您的账号已经被锁定，无法登录系统，请联系管理员" + username);
                 var usertoken = await UserLoginGetTokenAsync(user);
@@ -98,13 +91,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     outPut.button = Listbuttons.ToArray();
                     outPut.menu = menuOutPut.children.ToArray();
-                    outPut.account = new account() { 
-                        Id = user.Id, 
-                        token = usertoken.Token, 
-                        employeeId = user.EmployeeId ?? string.Empty, 
-                        userName = user.UserName ?? string.Empty, 
-                        EmpName = user.Employee?.Name ?? string.Empty 
-                    };
+                    outPut.account = new account() { Id = user.Id, token = usertoken.Token, employeeId = user.EmployeeId + "", userName = user.UserName, EmpName = user.Employee.Name };
 
                     await _logManager.WriteLoginLogAsync(user.Id, usertoken == null ? "尝试登录系统失败" : "登录系统成功,登录IP:" + Ip);
                     return outPut;
@@ -133,13 +120,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     outPut.button = Listbuttons.ToArray();
                     outPut.menu = menuOutPut.children.ToArray();
-                    outPut.account = new account() { 
-                        Id = user.Id, 
-                        token = usertoken.Token, 
-                        employeeId = user.EmployeeId ?? string.Empty, 
-                        userName = user.UserName ?? string.Empty, 
-                        EmpName = user.Employee?.Name ?? string.Empty 
-                    };
+                    outPut.account = new account() { Id = user.Id, token = usertoken.Token, employeeId = user.EmployeeId + "", userName = user.UserName, EmpName = user.Employee.Name };
 
                     await _logManager.WriteLoginLogAsync(user.Id, usertoken == null ? "尝试登录系统失败" : "登录系统成功,登录IP:" + Ip);
                     return outPut;
@@ -165,7 +146,7 @@ namespace CDGService.WebAPI.DataCore
                 MenuOutPut curItem = new MenuOutPut() { title = "根节点", Id = "0", ParentMenuCode = "0" };
 
 
-                MenuOutPut[] result = Mapper.Map<MenuOutPut[]>(dat.Distinct());
+                MenuOutPut[] result = _mapper.Map<MenuOutPut[]>(dat.Distinct());
                 menu listmenus = new menu();
 
                 LoopToAppendChildren(result, curItem, listmenus);
@@ -352,7 +333,7 @@ namespace CDGService.WebAPI.DataCore
                     if (string.IsNullOrEmpty(input.Pwd))
                         throw new Exception(MessageFormater.PrameterNeedProvider("input.Pwd"));
 
-                    data = Mapper.Map<User>(input);
+                    data = _mapper.Map<User>(input);
                     data.Id = Guid.NewGuid().tostring32();
                     data.Pwd = input.Pwd.MD5();
                     data.IsDelete = false;
@@ -470,13 +451,13 @@ namespace CDGService.WebAPI.DataCore
                     if (input.PageNum > 0 && input.PageSize > 0)
                     {
                         var Dialysis = await PaginatedList<User>.CreateAsync(datas, input.PageNum, input.PageSize);
-                        //  result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                        //  result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
 
-                        result = Mapper.Map<UserOutput[]>(Dialysis);
+                        result = _mapper.Map<UserOutput[]>(Dialysis);
                     }
                     else
                     {
-                        result = Mapper.Map<UserOutput[]>(datas);
+                        result = _mapper.Map<UserOutput[]>(datas);
                     }
                     for (int i = 0; i < result.Length; i++)
                     {
@@ -636,7 +617,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await MenuStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<MenuOutPut[]>(datas);
+                    result = _mapper.Map<MenuOutPut[]>(datas);
                     _rolePermission = await RolePermissionStore.Entities.Where(t => t.Roleld == RoleId).ToListAsync();
                     LoopToAppendChildren(result, curItem, rolePermissionsOutPuts);
                 }

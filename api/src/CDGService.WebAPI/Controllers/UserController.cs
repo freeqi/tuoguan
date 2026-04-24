@@ -29,7 +29,7 @@ namespace CDGService.WebAPI.Controllers
     {
         private readonly UserManager _usermanager;
         private readonly IGetUserInfo _userinfo;
-        
+
 
         /// <summary>
         /// 用户相关操作
@@ -41,7 +41,7 @@ namespace CDGService.WebAPI.Controllers
         {
             _usermanager = usermanager;
             _userinfo = userinfo;
-            
+
         }
 
         /// <summary>
@@ -52,10 +52,10 @@ namespace CDGService.WebAPI.Controllers
         [HttpPost("login")]
         //[CheckLogin]
         [ServiceMessageTryCatch]
-        public virtual async Task<ServiceMessage<UserLoginOutPut>> Login([FromBody]UserInput uinput)
+        public virtual async Task<ServiceMessage<UserLoginOutPut>> Login([FromBody] UserInput uinput)
         {
-           
-          
+
+
             var result = await _usermanager.UserLoginAsync(uinput?.UserName, uinput?.Pwd, HttpContext.GetUserIp());
             return new ServiceMessage<UserLoginOutPut>(result);
         }
@@ -64,7 +64,7 @@ namespace CDGService.WebAPI.Controllers
         /// 测试用户是否登录成功。把登录操作获取的token，放到header里，key="token"
         /// </summary>
         /// <returns></returns>
-        [HttpGet("Test")]       
+        [HttpGet("Test")]
         [ServiceMessageTryCatch]
         public virtual Task<ServiceMessage<string>> Test()
         {
@@ -122,7 +122,7 @@ namespace CDGService.WebAPI.Controllers
         [HttpPost("user/mpwd")]
         [CheckLogin]
         [ServiceMessageTryCatch]
-        public virtual Task<ServiceMessage<bool>> ModifyPwdUserAsync([FromBody]UserModifyPsInput input)
+        public virtual Task<ServiceMessage<bool>> ModifyPwdUserAsync([FromBody] UserModifyPsInput input)
         {
             return Task.Run(async () =>
             {
@@ -141,7 +141,7 @@ namespace CDGService.WebAPI.Controllers
         [CheckLogin]
         [ServiceMessageTryCatch]
         [LogRecord("账号", LogType.DataDelete)]
-        public virtual Task<ServiceMessage<bool>> DeleteUserAsync([FromRoute] string  id)
+        public virtual Task<ServiceMessage<bool>> DeleteUserAsync([FromRoute] string id)
         {
             return Task.Run(async () =>
             {

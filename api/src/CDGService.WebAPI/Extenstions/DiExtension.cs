@@ -3,7 +3,6 @@ using System.Reflection;
 using Autofac;
 using Autofac.Extras.DynamicProxy;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +47,7 @@ namespace CDGService.WebAPI.Extenstions
             builder.RegisterType<EquipmentManager>().AsSelf();
             builder.RegisterType<MaintenanceRecordManger>().AsSelf();
 
+            //菜单 权限
             builder.RegisterType<MenuManager>().AsSelf();
 
             builder.RegisterType<CenterDockingManger>().AsSelf();
@@ -55,7 +55,10 @@ namespace CDGService.WebAPI.Extenstions
             builder.RegisterType<HospitalFeelingManager>().AsSelf();
 
             builder.RegisterType<Application.BisStatistical.PatientStatistical>().AsSelf();
+            //
 
+            //builder.RegisterType<Application.APPConversionToPDF.ConversionMain>().SingleInstance();
+            //质控
             builder.RegisterType<QualityControlManager>().AsSelf();
             builder.RegisterType<ResultControlManager>().AsSelf();
 
@@ -71,13 +74,21 @@ namespace CDGService.WebAPI.Extenstions
             builder.RegisterType<InformationManager>().AsSelf();
 
 
-            builder.RegisterAssemblyTypes(typeof(Startup).GetTypeInfo().Assembly)
-                .Where(t => (t.IsSubclassOf(typeof(Controller)) || t.IsSubclassOf(typeof(ControllerBase))) && !t.IsAbstract)
-                .EnableClassInterceptors()
-                .InterceptedBy(typeof(ServiceMessageTryCatchInterceptor))
-                .InterceptedBy(typeof(LogRecordInterceptor));
+            //注入所有controller，并启用ServiceMessageTryCatchInterceptor
+            var assembly = typeof(ServiceMessageTryCatchInterceptor).GetTypeInfo().Assembly;
+            //var manager = new ApplicationPartManager();
+            //manager.ApplicationParts.Add(new AssemblyPart(assembly));
+            //manager.FeatureProviders.Add(new ControllerFeatureProvider());
 
-            builder.RegisterAssemblyTypes(typeof(Startup).GetTypeInfo().Assembly)
+            //var feature = new ControllerFeature();
+            //manager.PopulateFeature(feature);
+            //builder.RegisterType<ApplicationPartManager>().AsSelf().SingleInstance();
+            //builder.RegisterTypes(feature.Controllers.Select(ti => ti.AsType()).ToArray())
+            //    .EnableClassInterceptors().InterceptedBy(typeof(ServiceMessageTryCatchInterceptor))
+            //    .InterceptedBy(typeof(LogRecordInterceptor));
+
+
+            builder.RegisterAssemblyTypes(assembly)
                        .Where(type => typeof(IDependency).IsAssignableFrom(type) && !type.GetTypeInfo().IsAbstract)
                        .AsSelf()
                        .InstancePerLifetimeScope();

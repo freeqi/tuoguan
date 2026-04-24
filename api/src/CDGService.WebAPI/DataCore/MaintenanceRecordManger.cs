@@ -1,4 +1,4 @@
-﻿﻿using CDGService.Data.Datas;
+﻿﻿﻿using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Dto;
 using CDGService.WebAPI.Extenstions;
@@ -19,13 +19,14 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-        public MaintenanceRecordManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo)
+        private readonly IMapper _mapper;
+        public MaintenanceRecordManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
-
+            _mapper = mapper;
         }
         private IRepository<MaintenanceRecord> MaintenanceRecordStore => _unitOfWork.GetStore<MaintenanceRecord>();
 
@@ -50,7 +51,7 @@ namespace CDGService.WebAPI.DataCore
 
                     predicate = predicate.And(t => t.EquipmentInfoId == EqId);
                     var data = await MaintenanceRecordStore.Entities.Where(predicate).ToArrayAsync();
-                    result = Mapper.Map<MaintenanceRecordOutPut[]>(data);
+                    result = _mapper.Map<MaintenanceRecordOutPut[]>(data);
                     if (result == null || result.Length <= 0)
                     {
                         // throw new Exception(MessageFormater.PrameterResultsIsNull("查询设备维修记录")); 
@@ -85,7 +86,7 @@ namespace CDGService.WebAPI.DataCore
                     Expression<Func<EquipmentKeepRecord, bool>> predicate = t => t.DataState == 1;
                     predicate = predicate.And(t => t.EquipmentInfoId == EqId);
                     var data = await EquipmentKeepRecordStore.Entities.Where(predicate).ToArrayAsync();
-                    result = Mapper.Map<EquipmentKeepRecordOutPut[]>(data);
+                    result = _mapper.Map<EquipmentKeepRecordOutPut[]>(data);
                     if (result == null || result.Length <= 0)
                     {
                         //  throw new Exception(MessageFormater.PrameterResultsIsNull("查询设备维保记录"));
@@ -128,7 +129,7 @@ namespace CDGService.WebAPI.DataCore
 
                         predicate = predicate.And(t => t.EquipmentInfoId == EqId && t.TestSpecimens == pHEnum&&t.TestType==TestType);
                         var data = await BiochemicalTestStore.Entities.Where(predicate).ToArrayAsync();
-                        result = Mapper.Map<BiochemicalTest[]>(data);
+                        result = _mapper.Map<BiochemicalTest[]>(data);
                         if (result == null || result.Length <= 0)
                         {
                             // throw new Exception(MessageFormater.PrameterResultsIsNull("查询设备生化检测记录"));

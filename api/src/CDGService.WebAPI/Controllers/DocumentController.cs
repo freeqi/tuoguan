@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CDGService.WebAPI.Controllers
 {
@@ -129,7 +130,7 @@ namespace CDGService.WebAPI.Controllers
         public virtual Task<ServiceMessage<string>> UpLoadFile([FromRoute] string fileName, [FromRoute] DocumentCatalog catalog)
         {
             string catalogName = catalog.ToChinese();
-            if (string.IsNullOrEmpty(catalogName))
+            if (catalogName.IsNullOrEmpty())
                 throw new Exception($"文档目录不能为空");
 
             string dir = Path.Combine(_documentSetting.DocumentRoot, catalog.ToChinese());
@@ -600,7 +601,7 @@ namespace CDGService.WebAPI.Controllers
         {
             string catalogName = "Excel导入";// catalog.ToChinese();
             string d = Path.GetExtension(fileName);//扩展名 “.docx” 
-            if (string.IsNullOrEmpty(catalogName))
+            if (catalogName.IsNullOrEmpty())
                 throw new Exception($"文档目录不能为空");
             if (d != ".xlsx" && d != ".xls")
                 throw new Exception($"请导入excle文件");

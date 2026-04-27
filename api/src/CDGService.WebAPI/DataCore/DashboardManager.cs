@@ -83,10 +83,10 @@ namespace CDGService.WebAPI.DataCore
             var statistics = new EquipmentStatisticsDto
             {
                 TotalCount = equipmentList.Count,
-                RunningCount = equipmentList.Count(e => e.EquipmentStatus == 1), // 运行中
-                IdleCount = equipmentList.Count(e => e.EquipmentStatus == 2), // 待机
-                FaultCount = equipmentList.Count(e => e.EquipmentStatus == 3), // 故障
-                MaintenanceCount = equipmentList.Count(e => e.EquipmentStatus == 4) // 维护中
+                RunningCount = equipmentList.Count(e => e.EquipmentState == "1"), // 运行中
+                IdleCount = equipmentList.Count(e => e.EquipmentState == "2"), // 待机
+                FaultCount = equipmentList.Count(e => e.EquipmentState == "3"), // 故障
+                MaintenanceCount = equipmentList.Count(e => e.EquipmentState == "4") // 维护中
             };
 
             return statistics;
@@ -194,7 +194,7 @@ namespace CDGService.WebAPI.DataCore
                     return new RecentFaultDto
                     {
                         Id = f.Id,
-                        EquipmentName = equipment?.EquipmentName ?? "",
+                        EquipmentName = equipment?.Name ?? "",
                         FaultType = f.FaultType,
                         FaultDescription = f.FaultDescription,
                         FaultOccurTime = f.FaultOccurTime,

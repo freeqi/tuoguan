@@ -13,7 +13,7 @@ namespace CDGService.WebAPI.DataCore
         private readonly IRepository<EquipmentMonitoring> _equipmentMonitoringRepository;
         private readonly IRepository<EquipmentFaultWarning> _equipmentFaultWarningRepository;
         private readonly IRepository<EquipmentFaultRecord> _equipmentFaultRecordRepository;
-        private readonly IRepository<Equipment> _equipmentRepository;
+        private readonly IRepository<EquipmentInfo> _equipmentRepository;
         private readonly IRepository<Tenant> _tenantRepository;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -21,7 +21,7 @@ namespace CDGService.WebAPI.DataCore
             IRepository<EquipmentMonitoring> equipmentMonitoringRepository,
             IRepository<EquipmentFaultWarning> equipmentFaultWarningRepository,
             IRepository<EquipmentFaultRecord> equipmentFaultRecordRepository,
-            IRepository<Equipment> equipmentRepository,
+            IRepository<EquipmentInfo> equipmentRepository,
             IRepository<Tenant> tenantRepository,
             IUnitOfWork unitOfWork)
         {
@@ -43,27 +43,17 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var monitoring in monitorings)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(monitoring.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(monitoring.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == monitoring.EquipmentId);
 
                 var monitoringOutput = new EquipmentMonitoringOutput
                 {
                     Id = monitoring.Id,
                     EquipmentId = monitoring.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = monitoring.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentName = equipment?.Name,
                     MonitoringTime = monitoring.MonitoringTime,
-                    Status = monitoring.Status,
-                    StatusText = GetStatusText(monitoring.Status),
-                    Temperature = monitoring.Temperature,
-                    Humidity = monitoring.Humidity,
-                    Pressure = monitoring.Pressure,
-                    Voltage = monitoring.Voltage,
-                    Current = monitoring.Current,
-                    Remark = monitoring.Remark,
-                    Creator = monitoring.Creator,
-                    CreateDate = monitoring.CreateDate
+                    Status = monitoring.Status.ToString(),
+                    StatusText = GetStatusText(monitoring.Status.ToString()),
+                    Remark = monitoring.Remark
                 };
 
                 result.Add(monitoringOutput);
@@ -77,30 +67,20 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentMonitoringOutput> GetMonitoringByIdAsync(string id)
         {
-            var monitoring = await _equipmentMonitoringRepository.GetByIdAsync(id);
+            var monitoring = await _equipmentMonitoringRepository.GetFirstOrDefaultAsync(m => m.Id == id);
             if (monitoring == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(monitoring.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(monitoring.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == monitoring.EquipmentId);
 
             var result = new EquipmentMonitoringOutput
             {
                 Id = monitoring.Id,
                 EquipmentId = monitoring.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = monitoring.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentName = equipment?.Name,
                 MonitoringTime = monitoring.MonitoringTime,
-                Status = monitoring.Status,
-                StatusText = GetStatusText(monitoring.Status),
-                Temperature = monitoring.Temperature,
-                Humidity = monitoring.Humidity,
-                Pressure = monitoring.Pressure,
-                Voltage = monitoring.Voltage,
-                Current = monitoring.Current,
-                Remark = monitoring.Remark,
-                Creator = monitoring.Creator,
-                CreateDate = monitoring.CreateDate
+                Status = monitoring.Status.ToString(),
+                StatusText = GetStatusText(monitoring.Status.ToString()),
+                Remark = monitoring.Remark
             };
 
             return result;
@@ -111,24 +91,20 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddMonitoringAsync(EquipmentMonitoringInput input)
         {
+            var parameters = new { input.Temperature, input.Humidity, input.Pressure, input.Voltage, input.Current };
+            var operatingParameters = Newtonsoft.Json.JsonConvert.SerializeObject(parameters);
+            
             var monitoring = new EquipmentMonitoring
             {
                 Id = Guid.NewGuid().ToString(),
                 EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
                 MonitoringTime = input.MonitoringTime,
-                Status = input.Status,
-                Temperature = input.Temperature,
-                Humidity = input.Humidity,
-                Pressure = input.Pressure,
-                Voltage = input.Voltage,
-                Current = input.Current,
-                Remark = input.Remark,
-                Creator = input.Creator,
-                CreateDate = DateTime.Now
+                Status = int.Parse(input.Status),
+                OperatingParameters = operatingParameters,
+                Remark = input.Remark
             };
 
-            await _equipmentMonitoringRepository.AddAsync(monitoring);
+            _equipmentMonitoringRepository.Insert(monitoring);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -137,18 +113,16 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateMonitoringAsync(EquipmentMonitoringInput input)
         {
-            var monitoring = await _equipmentMonitoringRepository.GetByIdAsync(input.Id);
+            var monitoring = await _equipmentMonitoringRepository.GetFirstOrDefaultAsync(m => m.Id == input.Id);
             if (monitoring == null) return false;
 
+            var parameters = new { input.Temperature, input.Humidity, input.Pressure, input.Voltage, input.Current };
+            var operatingParameters = Newtonsoft.Json.JsonConvert.SerializeObject(parameters);
+
             monitoring.EquipmentId = input.EquipmentId;
-            monitoring.TenantId = input.TenantId;
             monitoring.MonitoringTime = input.MonitoringTime;
-            monitoring.Status = input.Status;
-            monitoring.Temperature = input.Temperature;
-            monitoring.Humidity = input.Humidity;
-            monitoring.Pressure = input.Pressure;
-            monitoring.Voltage = input.Voltage;
-            monitoring.Current = input.Current;
+            monitoring.Status = int.Parse(input.Status);
+            monitoring.OperatingParameters = operatingParameters;
             monitoring.Remark = input.Remark;
 
             _equipmentMonitoringRepository.Update(monitoring);
@@ -160,10 +134,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteMonitoringAsync(string id)
         {
-            var monitoring = await _equipmentMonitoringRepository.GetByIdAsync(id);
+            var monitoring = await _equipmentMonitoringRepository.GetFirstOrDefaultAsync(m => m.Id == id);
             if (monitoring == null) return false;
 
-            _equipmentMonitoringRepository.Delete(monitoring);
+            _equipmentMonitoringRepository.Remove(monitoring);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -177,29 +151,24 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var warning in warnings)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(warning.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(warning.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == warning.EquipmentId);
 
                 var warningOutput = new EquipmentFaultWarningOutput
                 {
                     Id = warning.Id,
                     EquipmentId = warning.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = warning.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentName = equipment?.Name,
                     WarningTime = warning.WarningTime,
                     WarningLevel = warning.WarningLevel,
                     WarningLevelText = GetWarningLevelText(warning.WarningLevel),
                     WarningType = warning.WarningType,
                     WarningContent = warning.WarningContent,
-                    ProcessingStatus = warning.ProcessingStatus,
-                    ProcessingStatusText = GetProcessingStatusText(warning.ProcessingStatus),
-                    Handler = warning.Handler,
-                    ProcessingTime = warning.ProcessingTime,
-                    ProcessingResult = warning.ProcessingResult,
-                    Remark = warning.Remark,
-                    Creator = warning.Creator,
-                    CreateDate = warning.CreateDate
+                    ProcessingStatus = warning.ProcessStatus,
+                    ProcessingStatusText = GetProcessingStatusText(warning.ProcessStatus),
+                    Handler = warning.Processor,
+                    ProcessingTime = warning.ProcessTime,
+                    ProcessingResult = warning.ProcessResult,
+                    Remark = warning.Remark
                 };
 
                 result.Add(warningOutput);
@@ -213,32 +182,27 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentFaultWarningOutput> GetFaultWarningByIdAsync(string id)
         {
-            var warning = await _equipmentFaultWarningRepository.GetByIdAsync(id);
+            var warning = await _equipmentFaultWarningRepository.GetFirstOrDefaultAsync(w => w.Id == id);
             if (warning == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(warning.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(warning.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == warning.EquipmentId);
 
             var result = new EquipmentFaultWarningOutput
             {
                 Id = warning.Id,
                 EquipmentId = warning.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = warning.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentName = equipment?.Name,
                 WarningTime = warning.WarningTime,
                 WarningLevel = warning.WarningLevel,
                 WarningLevelText = GetWarningLevelText(warning.WarningLevel),
                 WarningType = warning.WarningType,
                 WarningContent = warning.WarningContent,
-                ProcessingStatus = warning.ProcessingStatus,
-                ProcessingStatusText = GetProcessingStatusText(warning.ProcessingStatus),
-                Handler = warning.Handler,
-                ProcessingTime = warning.ProcessingTime,
-                ProcessingResult = warning.ProcessingResult,
-                Remark = warning.Remark,
-                Creator = warning.Creator,
-                CreateDate = warning.CreateDate
+                ProcessingStatus = warning.ProcessStatus,
+                ProcessingStatusText = GetProcessingStatusText(warning.ProcessStatus),
+                Handler = warning.Processor,
+                ProcessingTime = warning.ProcessTime,
+                ProcessingResult = warning.ProcessResult,
+                Remark = warning.Remark
             };
 
             return result;
@@ -253,21 +217,18 @@ namespace CDGService.WebAPI.DataCore
             {
                 Id = Guid.NewGuid().ToString(),
                 EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
                 WarningTime = input.WarningTime,
                 WarningLevel = input.WarningLevel,
                 WarningType = input.WarningType,
                 WarningContent = input.WarningContent,
-                ProcessingStatus = input.ProcessingStatus,
-                Handler = input.Handler,
-                ProcessingTime = input.ProcessingTime,
-                ProcessingResult = input.ProcessingResult,
-                Remark = input.Remark,
-                Creator = input.Creator,
-                CreateDate = DateTime.Now
+                ProcessStatus = input.ProcessingStatus,
+                Processor = input.Handler,
+                ProcessTime = input.ProcessingTime,
+                ProcessResult = input.ProcessingResult,
+                Remark = input.Remark
             };
 
-            await _equipmentFaultWarningRepository.AddAsync(warning);
+            _equipmentFaultWarningRepository.Insert(warning);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -276,19 +237,18 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateFaultWarningAsync(EquipmentFaultWarningInput input)
         {
-            var warning = await _equipmentFaultWarningRepository.GetByIdAsync(input.Id);
+            var warning = await _equipmentFaultWarningRepository.GetFirstOrDefaultAsync(w => w.Id == input.Id);
             if (warning == null) return false;
 
             warning.EquipmentId = input.EquipmentId;
-            warning.TenantId = input.TenantId;
             warning.WarningTime = input.WarningTime;
             warning.WarningLevel = input.WarningLevel;
             warning.WarningType = input.WarningType;
             warning.WarningContent = input.WarningContent;
-            warning.ProcessingStatus = input.ProcessingStatus;
-            warning.Handler = input.Handler;
-            warning.ProcessingTime = input.ProcessingTime;
-            warning.ProcessingResult = input.ProcessingResult;
+            warning.ProcessStatus = input.ProcessingStatus;
+            warning.Processor = input.Handler;
+            warning.ProcessTime = input.ProcessingTime;
+            warning.ProcessResult = input.ProcessingResult;
             warning.Remark = input.Remark;
 
             _equipmentFaultWarningRepository.Update(warning);
@@ -300,13 +260,13 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> HandleFaultWarningAsync(string id, int processingStatus, string handler, string processingResult)
         {
-            var warning = await _equipmentFaultWarningRepository.GetByIdAsync(id);
+            var warning = await _equipmentFaultWarningRepository.GetFirstOrDefaultAsync(w => w.Id == id);
             if (warning == null) return false;
 
-            warning.ProcessingStatus = processingStatus;
-            warning.Handler = handler;
-            warning.ProcessingTime = DateTime.Now;
-            warning.ProcessingResult = processingResult;
+            warning.ProcessStatus = processingStatus;
+            warning.Processor = handler;
+            warning.ProcessTime = DateTime.Now;
+            warning.ProcessResult = processingResult;
 
             _equipmentFaultWarningRepository.Update(warning);
             return await _unitOfWork.SaveChangesAsync() > 0;
@@ -317,10 +277,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteFaultWarningAsync(string id)
         {
-            var warning = await _equipmentFaultWarningRepository.GetByIdAsync(id);
+            var warning = await _equipmentFaultWarningRepository.GetFirstOrDefaultAsync(w => w.Id == id);
             if (warning == null) return false;
 
-            _equipmentFaultWarningRepository.Delete(warning);
+            _equipmentFaultWarningRepository.Remove(warning);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -334,26 +294,23 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var record in records)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(record.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(record.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == record.EquipmentId);
 
                 var recordOutput = new EquipmentFaultRecordOutput
                 {
                     Id = record.Id,
                     FaultNo = record.FaultNo,
                     EquipmentId = record.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = record.TenantId,
-                    TenantName = tenant?.TenantName,
-                    FaultOccurTime = record.FaultOccurTime,
-                    FaultResolveTime = record.FaultResolveTime,
+                    EquipmentName = equipment?.Name,
+                    FaultOccurTime = record.FaultTime,
+                    FaultResolveTime = record.ProcessTime,
                     FaultType = record.FaultType,
                     FaultDescription = record.FaultDescription,
-                    FaultReason = record.FaultReason,
-                    HandlingMethod = record.HandlingMethod,
-                    Handler = record.Handler,
-                    FaultStatus = record.FaultStatus,
-                    FaultStatusText = GetFaultStatusText(record.FaultStatus),
+                    FaultReason = record.ProcessResult,
+                    HandlingMethod = record.ProcessResult,
+                    Handler = record.Processor,
+                    FaultStatus = record.Status,
+                    FaultStatusText = GetFaultStatusText(record.Status),
                     Remark = record.Remark,
                     Creator = record.Creator,
                     CreateDate = record.CreateDate
@@ -370,29 +327,26 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentFaultRecordOutput> GetFaultRecordByIdAsync(string id)
         {
-            var record = await _equipmentFaultRecordRepository.GetByIdAsync(id);
+            var record = await _equipmentFaultRecordRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (record == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(record.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(record.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == record.EquipmentId);
 
             var result = new EquipmentFaultRecordOutput
             {
                 Id = record.Id,
                 FaultNo = record.FaultNo,
                 EquipmentId = record.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = record.TenantId,
-                TenantName = tenant?.TenantName,
-                FaultOccurTime = record.FaultOccurTime,
-                FaultResolveTime = record.FaultResolveTime,
+                EquipmentName = equipment?.Name,
+                FaultOccurTime = record.FaultTime,
+                FaultResolveTime = record.ProcessTime,
                 FaultType = record.FaultType,
                 FaultDescription = record.FaultDescription,
-                FaultReason = record.FaultReason,
-                HandlingMethod = record.HandlingMethod,
-                Handler = record.Handler,
-                FaultStatus = record.FaultStatus,
-                FaultStatusText = GetFaultStatusText(record.FaultStatus),
+                FaultReason = record.ProcessResult,
+                HandlingMethod = record.ProcessResult,
+                Handler = record.Processor,
+                FaultStatus = record.Status,
+                FaultStatusText = GetFaultStatusText(record.Status),
                 Remark = record.Remark,
                 Creator = record.Creator,
                 CreateDate = record.CreateDate
@@ -411,21 +365,19 @@ namespace CDGService.WebAPI.DataCore
                 Id = Guid.NewGuid().ToString(),
                 FaultNo = input.FaultNo,
                 EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
-                FaultOccurTime = input.FaultOccurTime,
-                FaultResolveTime = input.FaultResolveTime,
+                FaultTime = input.FaultOccurTime,
                 FaultType = input.FaultType,
                 FaultDescription = input.FaultDescription,
-                FaultReason = input.FaultReason,
-                HandlingMethod = input.HandlingMethod,
-                Handler = input.Handler,
-                FaultStatus = input.FaultStatus,
+                Status = input.FaultStatus,
+                Processor = input.Handler,
+                ProcessTime = input.FaultResolveTime,
+                ProcessResult = input.HandlingMethod,
                 Remark = input.Remark,
                 Creator = input.Creator,
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentFaultRecordRepository.AddAsync(record);
+            _equipmentFaultRecordRepository.Insert(record);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -434,20 +386,18 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateFaultRecordAsync(EquipmentFaultRecordInput input)
         {
-            var record = await _equipmentFaultRecordRepository.GetByIdAsync(input.Id);
+            var record = await _equipmentFaultRecordRepository.GetFirstOrDefaultAsync(r => r.Id == input.Id);
             if (record == null) return false;
 
             record.FaultNo = input.FaultNo;
             record.EquipmentId = input.EquipmentId;
-            record.TenantId = input.TenantId;
-            record.FaultOccurTime = input.FaultOccurTime;
-            record.FaultResolveTime = input.FaultResolveTime;
+            record.FaultTime = input.FaultOccurTime;
             record.FaultType = input.FaultType;
             record.FaultDescription = input.FaultDescription;
-            record.FaultReason = input.FaultReason;
-            record.HandlingMethod = input.HandlingMethod;
-            record.Handler = input.Handler;
-            record.FaultStatus = input.FaultStatus;
+            record.Status = input.FaultStatus;
+            record.Processor = input.Handler;
+            record.ProcessTime = input.FaultResolveTime;
+            record.ProcessResult = input.HandlingMethod;
             record.Remark = input.Remark;
 
             _equipmentFaultRecordRepository.Update(record);
@@ -457,15 +407,15 @@ namespace CDGService.WebAPI.DataCore
         /// <summary>
         /// 解决设备故障
         /// </summary>
-        public async Task<bool> ResolveFaultAsync(string id, DateTime faultResolveTime, string handler, string handlingMethod)
+        public async Task<bool> ResolveFaultAsync(string id, DateTime processTime, string processor, string processResult)
         {
-            var record = await _equipmentFaultRecordRepository.GetByIdAsync(id);
+            var record = await _equipmentFaultRecordRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (record == null) return false;
 
-            record.FaultResolveTime = faultResolveTime;
-            record.Handler = handler;
-            record.HandlingMethod = handlingMethod;
-            record.FaultStatus = 2; // 已解决
+            record.ProcessTime = processTime;
+            record.Processor = processor;
+            record.ProcessResult = processResult;
+            record.Status = 3; // 已解决
 
             _equipmentFaultRecordRepository.Update(record);
             return await _unitOfWork.SaveChangesAsync() > 0;
@@ -476,10 +426,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteFaultRecordAsync(string id)
         {
-            var record = await _equipmentFaultRecordRepository.GetByIdAsync(id);
+            var record = await _equipmentFaultRecordRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (record == null) return false;
 
-            _equipmentFaultRecordRepository.Delete(record);
+            _equipmentFaultRecordRepository.Remove(record);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 

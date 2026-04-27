@@ -34,7 +34,7 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var consumable in consumables)
             {
-                var supplier = await _supplierRepository.GetByIdAsync(consumable.SupplierId);
+                var supplier = await _supplierRepository.GetFirstOrDefaultAsync(s => s.Id == consumable.SupplierId);
                 result.Add(new ConsumableOutput
                 {
                     Id = consumable.Id,
@@ -93,10 +93,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<ConsumableOutput> GetConsumableByIdAsync(string id)
         {
-            var consumable = await _medicalItemRecordRepository.GetByIdAsync(id);
+            var consumable = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == id);
             if (consumable == null) return null;
 
-            var supplier = await _supplierRepository.GetByIdAsync(consumable.SupplierId);
+            var supplier = await _supplierRepository.GetFirstOrDefaultAsync(s => s.Id == consumable.SupplierId);
             return new ConsumableOutput
             {
                 Id = consumable.Id,
@@ -198,7 +198,7 @@ namespace CDGService.WebAPI.DataCore
                 IsDelete = false
             };
 
-            await _medicalItemRecordRepository.AddAsync(consumable);
+            _medicalItemRecordRepository.Insert(consumable);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -207,7 +207,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateConsumableAsync(ConsumableInput input)
         {
-            var consumable = await _medicalItemRecordRepository.GetByIdAsync(input.Id);
+            var consumable = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == input.Id);
             if (consumable == null) return false;
 
             consumable.MedicalItemName = input.MedicalItemName;
@@ -258,7 +258,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteConsumableAsync(string id)
         {
-            var consumable = await _medicalItemRecordRepository.GetByIdAsync(id);
+            var consumable = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == id);
             if (consumable == null) return false;
 
             consumable.IsDelete = true;

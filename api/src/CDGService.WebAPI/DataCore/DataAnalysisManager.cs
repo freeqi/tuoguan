@@ -1,5 +1,5 @@
 using CDGService.Data.Datas;
-using CDGService.Store.IRepository;
+using CDGService.Data.Store;
 using CDGService.WebAPI.Dto;
 using System;
 using System.Collections.Generic;
@@ -11,23 +11,23 @@ namespace CDGService.WebAPI.DataCore
     public class DataAnalysisManager
     {
         private readonly IRepository<EquipmentFaultRecord> _equipmentFaultRecordRepository;
-        private readonly IRepository<MedicalEquipment> _medicalEquipmentRepository;
+        private readonly IRepository<EquipmentInfo> _medicalEquipmentRepository;
         private readonly IRepository<ConsumableInbound> _consumableInboundRepository;
         private readonly IRepository<ConsumableInboundDetail> _consumableInboundDetailRepository;
         private readonly IRepository<ConsumableOutbound> _consumableOutboundRepository;
         private readonly IRepository<ConsumableOutboundDetail> _consumableOutboundDetailRepository;
         private readonly IRepository<ConsumableInventory> _consumableInventoryRepository;
-        private readonly IRepository<MedicalItem> _medicalItemRepository;
+        private readonly IRepository<MedicalItemRecord> _medicalItemRepository;
 
         public DataAnalysisManager(
             IRepository<EquipmentFaultRecord> equipmentFaultRecordRepository,
-            IRepository<MedicalEquipment> medicalEquipmentRepository,
+            IRepository<EquipmentInfo> medicalEquipmentRepository,
             IRepository<ConsumableInbound> consumableInboundRepository,
             IRepository<ConsumableInboundDetail> consumableInboundDetailRepository,
             IRepository<ConsumableOutbound> consumableOutboundRepository,
             IRepository<ConsumableOutboundDetail> consumableOutboundDetailRepository,
             IRepository<ConsumableInventory> consumableInventoryRepository,
-            IRepository<MedicalItem> medicalItemRepository)
+            IRepository<MedicalItemRecord> medicalItemRepository)
         {
             _equipmentFaultRecordRepository = equipmentFaultRecordRepository;
             _medicalEquipmentRepository = medicalEquipmentRepository;
@@ -44,21 +44,21 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentFaultStatisticsOutput> GetEquipmentFaultStatisticsAsync(EquipmentFaultStatisticsInput input)
         {
-            var faultList = await _equipmentFaultRecordRepository.GetAllAsync();
+            var faultList = (await _equipmentFaultRecordRepository.GetAllAsync()).ToList();
             var equipmentList = await _medicalEquipmentRepository.GetAllAsync();
 
             // 应用过滤条件
             if (input.StartDate.HasValue)
             {
-                faultList = faultList.Where(f => f.FaultOccurTime >= input.StartDate.Value).ToList();
+                faultList = faultList.Where(f => f.FaultTime >= input.StartDate.Value).ToList();
             }
             if (input.EndDate.HasValue)
             {
-                faultList = faultList.Where(f => f.FaultOccurTime <= input.EndDate.Value).ToList();
+                faultList = faultList.Where(f => f.FaultTime <= input.EndDate.Value).ToList();
             }
             if (!string.IsNullOrEmpty(input.EquipmentType))
             {
-                var equipmentIds = equipmentList.Where(e => e.EquipmentType == input.EquipmentType).Select(e => e.Id).ToList();
+                var equipmentIds = equipmentList.Where(e => e.EquipType == input.EquipmentType).Select(e => e.Id).ToList();
                 faultList = faultList.Where(f => equipmentIds.Contains(f.EquipmentId)).ToList();
             }
             if (!string.IsNullOrEmpty(input.FaultType))
@@ -66,13 +66,13 @@ namespace CDGService.WebAPI.DataCore
                 faultList = faultList.Where(f => f.FaultType == input.FaultType).ToList();
             }
 
-            var resolvedCount = faultList.Count(f => f.ProcessingStatus == 2);
+            var resolvedCount = faultList.Count(f => f.Status == 2);
             var unresolvedCount = faultList.Count - resolvedCount;
             var resolutionRate = faultList.Count > 0 ? Math.Round((decimal)resolvedCount / faultList.Count * 100, 2) : 0;
 
             // 计算平均解决时间
-            var resolvedFaults = faultList.Where(f => f.ProcessingStatus == 2 && f.ProcessingCompleteTime.HasValue);
-            var totalResolutionTime = resolvedFaults.Sum(f => (f.ProcessingCompleteTime.Value - f.FaultOccurTime).TotalHours);
+            var resolvedFaults = faultList.Where(f => f.Status == 2 && f.ProcessTime.HasValue);
+            var totalResolutionTime = resolvedFaults.Sum(f => (f.ProcessTime.Value - f.FaultTime).TotalHours);
             var averageResolutionTime = resolvedFaults.Count() > 0 ? Math.Round((decimal)totalResolutionTime / resolvedFaults.Count(), 2) : 0;
 
             // 故障类型分布
@@ -94,8 +94,8 @@ namespace CDGService.WebAPI.DataCore
                     return new EquipmentFaultDistributionDto
                     {
                         EquipmentId = g.Key,
-                        EquipmentName = equipment?.EquipmentName ?? "",
-                        EquipmentType = equipment?.EquipmentType ?? "",
+                        EquipmentName = equipment?.Name ?? "",
+                        EquipmentType = equipment?.EquipType ?? "",
                         FaultCount = g.Count(),
                         Percentage = faultList.Count > 0 ? Math.Round((decimal)g.Count() / faultList.Count * 100, 2) : 0
                     };
@@ -106,9 +106,9 @@ namespace CDGService.WebAPI.DataCore
 
             // 故障趋势
             var faultTrend = faultList
-                .GroupBy(f => f.FaultOccurTime.Date)
+                .GroupBy(f => f.FaultTime.Date)
                 .Select(g => {
-                    var resolved = g.Count(f => f.ProcessingStatus == 2);
+                    var resolved = g.Count(f => f.Status == 2);
                     return new FaultTrendDto
                     {
                         Date = g.Key,
@@ -143,33 +143,33 @@ namespace CDGService.WebAPI.DataCore
             var inboundDetails = await _consumableInboundDetailRepository.GetAllAsync();
             var outboundList = await _consumableOutboundRepository.GetAllAsync();
             var outboundDetails = await _consumableOutboundDetailRepository.GetAllAsync();
-            var inventoryList = await _consumableInventoryRepository.GetAllAsync();
+            var inventoryList = (await _consumableInventoryRepository.GetAllAsync()).ToList();
             var medicalItems = await _medicalItemRepository.GetAllAsync();
 
             // 应用过滤条件
             if (input.StartDate.HasValue)
             {
-                inboundList = inboundList.Where(i => i.InboundDate >= input.StartDate.Value).ToList();
-                outboundList = outboundList.Where(o => o.OutboundDate >= input.StartDate.Value).ToList();
+                inboundList = inboundList.Where(i => i.InboundDate >= input.StartDate.Value).ToArray();
+                outboundList = outboundList.Where(o => o.OutboundDate >= input.StartDate.Value).ToArray();
             }
             if (input.EndDate.HasValue)
             {
-                inboundList = inboundList.Where(i => i.InboundDate <= input.EndDate.Value).ToList();
-                outboundList = outboundList.Where(o => o.OutboundDate <= input.EndDate.Value).ToList();
+                inboundList = inboundList.Where(i => i.InboundDate <= input.EndDate.Value).ToArray();
+                outboundList = outboundList.Where(o => o.OutboundDate <= input.EndDate.Value).ToArray();
             }
             if (!string.IsNullOrEmpty(input.SupplierName))
             {
-                inboundList = inboundList.Where(i => i.SupplierName == input.SupplierName).ToList();
+                inboundList = inboundList.Where(i => i.SupplierName == input.SupplierName).ToArray();
             }
 
             // 过滤入库和出库详情
-            var filteredInboundDetails = inboundDetails.Where(d => inboundList.Select(i => i.Id).Contains(d.ConsumableInboundId)).ToList();
-            var filteredOutboundDetails = outboundDetails.Where(d => outboundList.Select(o => o.Id).Contains(d.ConsumableOutboundId)).ToList();
+            var filteredInboundDetails = inboundDetails.Where(d => inboundList.Select(i => i.Id).Contains(d.InboundId)).ToList();
+            var filteredOutboundDetails = outboundDetails.Where(d => outboundList.Select(o => o.Id).Contains(d.OutboundId)).ToList();
 
             // 应用耗材类型过滤
             if (!string.IsNullOrEmpty(input.ConsumableType))
             {
-                var medicalItemIds = medicalItems.Where(m => m.Type == input.ConsumableType).Select(m => m.Id).ToList();
+                var medicalItemIds = medicalItems.Where(m => m.WareHouseIds == input.ConsumableType).Select(m => m.Id).ToList();
                 filteredInboundDetails = filteredInboundDetails.Where(d => medicalItemIds.Contains(d.MedicalItemId)).ToList();
                 filteredOutboundDetails = filteredOutboundDetails.Where(d => medicalItemIds.Contains(d.MedicalItemId)).ToList();
                 inventoryList = inventoryList.Where(i => medicalItemIds.Contains(i.MedicalItemId)).ToList();
@@ -179,9 +179,9 @@ namespace CDGService.WebAPI.DataCore
             var totalInboundQuantity = filteredInboundDetails.Sum(d => d.Quantity);
             var totalInboundAmount = filteredInboundDetails.Sum(d => d.Quantity * d.UnitPrice);
 
-            // 计算总出库量和金额
+            // 计算总出库量
             var totalOutboundQuantity = filteredOutboundDetails.Sum(d => d.Quantity);
-            var totalOutboundAmount = filteredOutboundDetails.Sum(d => d.Quantity * d.UnitPrice);
+            var totalOutboundAmount = 0m; // ConsumableOutboundDetail 没有 UnitPrice 属性
 
             // 计算库存总量和金额
             var totalStockQuantity = inventoryList.Sum(i => i.StockQuantity);
@@ -191,11 +191,11 @@ namespace CDGService.WebAPI.DataCore
             var consumableTypeDistribution = filteredInboundDetails
                 .GroupBy(d => {
                     var medicalItem = medicalItems.FirstOrDefault(m => m.Id == d.MedicalItemId);
-                    return medicalItem?.Type ?? "未知";
+                    return medicalItem?.WareHouseIds ?? "未知";
                 })
                 .Select(g => {
                     var type = g.Key;
-                    var typeMedicalItemIds = medicalItems.Where(m => m.Type == type).Select(m => m.Id).ToList();
+                    var typeMedicalItemIds = medicalItems.Where(m => m.WareHouseIds == type).Select(m => m.Id).ToList();
                     var typeInbound = filteredInboundDetails.Where(d => typeMedicalItemIds.Contains(d.MedicalItemId)).Sum(d => d.Quantity);
                     var typeOutbound = filteredOutboundDetails.Where(d => typeMedicalItemIds.Contains(d.MedicalItemId)).Sum(d => d.Quantity);
                     var typeStock = inventoryList.Where(i => typeMedicalItemIds.Contains(i.MedicalItemId)).Sum(i => i.StockQuantity);
@@ -218,7 +218,7 @@ namespace CDGService.WebAPI.DataCore
                 .Select(g => {
                     var supplier = g.Key;
                     var supplierInboundIds = g.Select(i => i.Id).ToList();
-                    var supplierInbound = filteredInboundDetails.Where(d => supplierInboundIds.Contains(d.ConsumableInboundId));
+                    var supplierInbound = filteredInboundDetails.Where(d => supplierInboundIds.Contains(d.InboundId));
                     var supplierQuantity = supplierInbound.Sum(d => d.Quantity);
                     var supplierAmount = supplierInbound.Sum(d => d.Quantity * d.UnitPrice);
 
@@ -237,7 +237,7 @@ namespace CDGService.WebAPI.DataCore
             // 进销存趋势
             var inboundTrend = filteredInboundDetails
                 .GroupBy(d => {
-                    var inbound = inboundList.FirstOrDefault(i => i.Id == d.ConsumableInboundId);
+                    var inbound = inboundList.FirstOrDefault(i => i.Id == d.InboundId);
                     return inbound?.InboundDate.Date ?? DateTime.MinValue;
                 })
                 .Where(g => g.Key != DateTime.MinValue)
@@ -245,7 +245,7 @@ namespace CDGService.WebAPI.DataCore
 
             var outboundTrend = filteredOutboundDetails
                 .GroupBy(d => {
-                    var outbound = outboundList.FirstOrDefault(o => o.Id == d.ConsumableOutboundId);
+                    var outbound = outboundList.FirstOrDefault(o => o.Id == d.OutboundId);
                     return outbound?.OutboundDate.Date ?? DateTime.MinValue;
                 })
                 .Where(g => g.Key != DateTime.MinValue)

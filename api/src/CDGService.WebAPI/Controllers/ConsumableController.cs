@@ -1,5 +1,7 @@
 using CDGService.WebAPI.DataCore;
 using CDGService.WebAPI.Dto;
+using CDGService.WebAPI.Datas;
+using CDGService.WebAPI.Extenstions;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;

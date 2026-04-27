@@ -13,7 +13,7 @@ namespace CDGService.WebAPI.DataCore
         private readonly IRepository<EquipmentMaintenance> _equipmentMaintenanceRepository;
         private readonly IRepository<EquipmentMaintenanceDetail> _equipmentMaintenanceDetailRepository;
         private readonly IRepository<EquipmentMaintenanceExtension> _equipmentMaintenanceExtensionRepository;
-        private readonly IRepository<Equipment> _equipmentRepository;
+        private readonly IRepository<EquipmentInfo> _equipmentRepository;
         private readonly IRepository<Tenant> _tenantRepository;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -21,7 +21,7 @@ namespace CDGService.WebAPI.DataCore
             IRepository<EquipmentMaintenance> equipmentMaintenanceRepository,
             IRepository<EquipmentMaintenanceDetail> equipmentMaintenanceDetailRepository,
             IRepository<EquipmentMaintenanceExtension> equipmentMaintenanceExtensionRepository,
-            IRepository<Equipment> equipmentRepository,
+            IRepository<EquipmentInfo> equipmentRepository,
             IRepository<Tenant> tenantRepository,
             IUnitOfWork unitOfWork)
         {
@@ -44,25 +44,18 @@ namespace CDGService.WebAPI.DataCore
             foreach (var maintenance in maintenances)
             {
                 var details = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == maintenance.Id);
-                var equipment = await _equipmentRepository.GetByIdAsync(maintenance.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(maintenance.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == maintenance.EquipmentId);
 
                 var maintenanceOutput = new EquipmentMaintenanceOutput
                 {
                     Id = maintenance.Id,
                     MaintenanceNo = maintenance.MaintenanceNo,
                     EquipmentId = maintenance.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = maintenance.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentName = equipment?.Name,
                     MaintenanceDate = maintenance.MaintenanceDate,
-                    MaintenanceType = maintenance.MaintenanceType,
-                    MaintenanceTypeText = GetMaintenanceTypeText(maintenance.MaintenanceType),
+                    MaintenanceType = Convert.ToInt32(maintenance.MaintenanceType),
+                    MaintenanceTypeText = GetMaintenanceTypeText(Convert.ToInt32(maintenance.MaintenanceType)),
                     MaintenanceContent = maintenance.MaintenanceContent,
-                    ServiceProvider = maintenance.ServiceProvider,
-                    ContactPerson = maintenance.ContactPerson,
-                    ContactPhone = maintenance.ContactPhone,
-                    MaintenanceCost = maintenance.MaintenanceCost,
                     Remark = maintenance.Remark,
                     Creator = maintenance.Creator,
                     CreateDate = maintenance.CreateDate,
@@ -75,11 +68,11 @@ namespace CDGService.WebAPI.DataCore
                     {
                         Id = detail.Id,
                         MaintenanceId = detail.MaintenanceId,
-                        PartName = detail.PartName,
-                        PartModel = detail.PartModel,
-                        Quantity = detail.Quantity,
-                        UnitPrice = detail.UnitPrice,
-                        TotalPrice = detail.Quantity * detail.UnitPrice,
+                        PartName = detail.MaintenanceItem,
+                        PartModel = detail.MaintenanceResult,
+                        Quantity = 1,
+                        UnitPrice = 0,
+                        TotalPrice = 0,
                         Remark = detail.Remark
                     });
                 }
@@ -95,29 +88,22 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentMaintenanceOutput> GetMaintenanceByIdAsync(string id)
         {
-            var maintenance = await _equipmentMaintenanceRepository.GetByIdAsync(id);
+            var maintenance = await _equipmentMaintenanceRepository.GetFirstOrDefaultAsync(m => m.Id == id);
             if (maintenance == null) return null;
 
             var details = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == id);
-            var equipment = await _equipmentRepository.GetByIdAsync(maintenance.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(maintenance.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == maintenance.EquipmentId);
 
             var result = new EquipmentMaintenanceOutput
             {
                 Id = maintenance.Id,
                 MaintenanceNo = maintenance.MaintenanceNo,
                 EquipmentId = maintenance.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = maintenance.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentName = equipment?.Name,
                 MaintenanceDate = maintenance.MaintenanceDate,
-                MaintenanceType = maintenance.MaintenanceType,
-                MaintenanceTypeText = GetMaintenanceTypeText(maintenance.MaintenanceType),
+                MaintenanceType = Convert.ToInt32(maintenance.MaintenanceType),
+                MaintenanceTypeText = GetMaintenanceTypeText(Convert.ToInt32(maintenance.MaintenanceType)),
                 MaintenanceContent = maintenance.MaintenanceContent,
-                ServiceProvider = maintenance.ServiceProvider,
-                ContactPerson = maintenance.ContactPerson,
-                ContactPhone = maintenance.ContactPhone,
-                MaintenanceCost = maintenance.MaintenanceCost,
                 Remark = maintenance.Remark,
                 Creator = maintenance.Creator,
                 CreateDate = maintenance.CreateDate,
@@ -130,11 +116,11 @@ namespace CDGService.WebAPI.DataCore
                 {
                     Id = detail.Id,
                     MaintenanceId = detail.MaintenanceId,
-                    PartName = detail.PartName,
-                    PartModel = detail.PartModel,
-                    Quantity = detail.Quantity,
-                    UnitPrice = detail.UnitPrice,
-                    TotalPrice = detail.Quantity * detail.UnitPrice,
+                    PartName = detail.MaintenanceItem,
+                    PartModel = detail.MaintenanceResult,
+                    Quantity = 1,
+                    UnitPrice = 0,
+                    TotalPrice = 0,
                     Remark = detail.Remark
                 });
             }
@@ -147,58 +133,38 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddMaintenanceAsync(EquipmentMaintenanceInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var maintenance = new EquipmentMaintenance
             {
-                try
+                Id = Guid.NewGuid().ToString(),
+                MaintenanceNo = input.MaintenanceNo,
+                EquipmentId = input.EquipmentId,
+                MaintenanceDate = input.MaintenanceDate,
+                MaintenanceType = input.MaintenanceType.ToString(),
+                MaintenanceContent = input.MaintenanceContent,
+                Remark = input.Remark,
+                Creator = input.Creator,
+                CreateDate = DateTime.Now
+            };
+
+            _equipmentMaintenanceRepository.Insert(maintenance);
+
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var maintenance = new EquipmentMaintenance
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        MaintenanceNo = input.MaintenanceNo,
-                        EquipmentId = input.EquipmentId,
-                        TenantId = input.TenantId,
-                        MaintenanceDate = input.MaintenanceDate,
-                        MaintenanceType = input.MaintenanceType,
-                        MaintenanceContent = input.MaintenanceContent,
-                        ServiceProvider = input.ServiceProvider,
-                        ContactPerson = input.ContactPerson,
-                        ContactPhone = input.ContactPhone,
-                        MaintenanceCost = input.MaintenanceCost,
-                        Remark = input.Remark,
-                        Creator = input.Creator,
-                        CreateDate = DateTime.Now
-                    };
-
-                    await _equipmentMaintenanceRepository.AddAsync(maintenance);
-
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
+                    var detail = new EquipmentMaintenanceDetail
                         {
-                            var detail = new EquipmentMaintenanceDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                MaintenanceId = maintenance.Id,
-                                PartName = detailInput.PartName,
-                                PartModel = detailInput.PartModel,
-                                Quantity = detailInput.Quantity,
-                                UnitPrice = detailInput.UnitPrice,
-                                Remark = detailInput.Remark
-                            };
-                            await _equipmentMaintenanceDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                            Id = Guid.NewGuid().ToString(),
+                            MaintenanceId = maintenance.Id,
+                            MaintenanceItem = detailInput.PartName,
+                            MaintenanceResult = detailInput.PartModel,
+                            Remark = detailInput.Remark
+                        };
+                    _equipmentMaintenanceDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -206,63 +172,43 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateMaintenanceAsync(EquipmentMaintenanceInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var maintenance = await _equipmentMaintenanceRepository.GetFirstOrDefaultAsync(m => m.Id == input.Id);
+            if (maintenance == null) return false;
+
+            maintenance.MaintenanceNo = input.MaintenanceNo;
+            maintenance.EquipmentId = input.EquipmentId;
+            maintenance.MaintenanceDate = input.MaintenanceDate;
+            maintenance.MaintenanceType = input.MaintenanceType.ToString();
+            maintenance.MaintenanceContent = input.MaintenanceContent;
+            maintenance.Remark = input.Remark;
+
+            _equipmentMaintenanceRepository.Update(maintenance);
+
+            // 删除旧的详情
+            var oldDetails = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == input.Id);
+            foreach (var oldDetail in oldDetails)
             {
-                try
+                _equipmentMaintenanceDetailRepository.Remove(oldDetail);
+            }
+
+            // 添加新的详情
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var maintenance = await _equipmentMaintenanceRepository.GetByIdAsync(input.Id);
-                    if (maintenance == null) return false;
-
-                    maintenance.MaintenanceNo = input.MaintenanceNo;
-                    maintenance.EquipmentId = input.EquipmentId;
-                    maintenance.TenantId = input.TenantId;
-                    maintenance.MaintenanceDate = input.MaintenanceDate;
-                    maintenance.MaintenanceType = input.MaintenanceType;
-                    maintenance.MaintenanceContent = input.MaintenanceContent;
-                    maintenance.ServiceProvider = input.ServiceProvider;
-                    maintenance.ContactPerson = input.ContactPerson;
-                    maintenance.ContactPhone = input.ContactPhone;
-                    maintenance.MaintenanceCost = input.MaintenanceCost;
-                    maintenance.Remark = input.Remark;
-
-                    _equipmentMaintenanceRepository.Update(maintenance);
-
-                    // 删除旧的详情
-                    var oldDetails = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == input.Id);
-                    foreach (var oldDetail in oldDetails)
-                    {
-                        _equipmentMaintenanceDetailRepository.Delete(oldDetail);
-                    }
-
-                    // 添加新的详情
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
+                    var detail = new EquipmentMaintenanceDetail
                         {
-                            var detail = new EquipmentMaintenanceDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                MaintenanceId = maintenance.Id,
-                                PartName = detailInput.PartName,
-                                PartModel = detailInput.PartModel,
-                                Quantity = detailInput.Quantity,
-                                UnitPrice = detailInput.UnitPrice,
-                                Remark = detailInput.Remark
-                            };
-                            await _equipmentMaintenanceDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                            Id = Guid.NewGuid().ToString(),
+                            MaintenanceId = maintenance.Id,
+                            MaintenanceItem = detailInput.PartName,
+                            MaintenanceResult = detailInput.PartModel,
+                            Remark = detailInput.Remark
+                        };
+                    _equipmentMaintenanceDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -270,40 +216,27 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteMaintenanceAsync(string id)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var maintenance = await _equipmentMaintenanceRepository.GetFirstOrDefaultAsync(m => m.Id == id);
+            if (maintenance == null) return false;
+
+            // 删除维保延长申请
+            var extensions = await _equipmentMaintenanceExtensionRepository.GetAllAsync(e => e.MaintenanceId == id);
+            foreach (var extension in extensions)
             {
-                try
-                {
-                    var maintenance = await _equipmentMaintenanceRepository.GetByIdAsync(id);
-                    if (maintenance == null) return false;
-
-                    // 删除维保延长申请
-                    var extensions = await _equipmentMaintenanceExtensionRepository.GetAllAsync(e => e.MaintenanceId == id);
-                    foreach (var extension in extensions)
-                    {
-                        _equipmentMaintenanceExtensionRepository.Delete(extension);
-                    }
-
-                    // 删除维保详情
-                    var details = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == id);
-                    foreach (var detail in details)
-                    {
-                        _equipmentMaintenanceDetailRepository.Delete(detail);
-                    }
-
-                    // 删除维保记录
-                    _equipmentMaintenanceRepository.Delete(maintenance);
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                _equipmentMaintenanceExtensionRepository.Remove(extension);
             }
+
+            // 删除维保详情
+            var details = await _equipmentMaintenanceDetailRepository.GetAllAsync(d => d.MaintenanceId == id);
+            foreach (var detail in details)
+            {
+                _equipmentMaintenanceDetailRepository.Remove(detail);
+            }
+
+            // 删除维保记录
+            _equipmentMaintenanceRepository.Remove(maintenance);
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -316,30 +249,24 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var extension in extensions)
             {
-                var maintenance = await _equipmentMaintenanceRepository.GetByIdAsync(extension.MaintenanceId);
-                var equipment = await _equipmentRepository.GetByIdAsync(extension.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(extension.TenantId);
+                var maintenance = await _equipmentMaintenanceRepository.GetFirstOrDefaultAsync(m => m.Id == extension.MaintenanceId);
+                var equipment = maintenance != null ? await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == maintenance.EquipmentId) : null;
 
                 var extensionOutput = new EquipmentMaintenanceExtensionOutput
                 {
                     Id = extension.Id,
-                    ExtensionNo = extension.ExtensionNo,
                     MaintenanceId = extension.MaintenanceId,
                     MaintenanceNo = maintenance?.MaintenanceNo,
-                    EquipmentId = extension.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = extension.TenantId,
-                    TenantName = tenant?.TenantName,
-                    ApplyDate = extension.ApplyDate,
-                    OriginalEndDate = extension.OriginalEndDate,
-                    NewEndDate = extension.NewEndDate,
-                    ExtensionReason = extension.ExtensionReason,
+                    EquipmentId = maintenance?.EquipmentId,
+                    EquipmentName = equipment?.Name,
+                    OriginalEndDate = extension.OriginalCompletionDate,
+                    NewEndDate = extension.NewCompletionDate,
+                    ExtensionReason = extension.Reason,
                     Status = extension.Status,
                     StatusText = GetStatusText(extension.Status),
                     Applicant = extension.Applicant,
                     Approver = extension.Approver,
                     ApprovalDate = extension.ApprovalDate,
-                    Creator = extension.Creator,
                     CreateDate = extension.CreateDate
                 };
 
@@ -354,33 +281,27 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentMaintenanceExtensionOutput> GetMaintenanceExtensionByIdAsync(string id)
         {
-            var extension = await _equipmentMaintenanceExtensionRepository.GetByIdAsync(id);
+            var extension = await _equipmentMaintenanceExtensionRepository.GetFirstOrDefaultAsync(e => e.Id == id);
             if (extension == null) return null;
 
-            var maintenance = await _equipmentMaintenanceRepository.GetByIdAsync(extension.MaintenanceId);
-            var equipment = await _equipmentRepository.GetByIdAsync(extension.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(extension.TenantId);
+            var maintenance = await _equipmentMaintenanceRepository.GetFirstOrDefaultAsync(m => m.Id == extension.MaintenanceId);
+            var equipment = maintenance != null ? await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == maintenance.EquipmentId) : null;
 
             var result = new EquipmentMaintenanceExtensionOutput
             {
                 Id = extension.Id,
-                ExtensionNo = extension.ExtensionNo,
                 MaintenanceId = extension.MaintenanceId,
                 MaintenanceNo = maintenance?.MaintenanceNo,
-                EquipmentId = extension.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = extension.TenantId,
-                TenantName = tenant?.TenantName,
-                ApplyDate = extension.ApplyDate,
-                OriginalEndDate = extension.OriginalEndDate,
-                NewEndDate = extension.NewEndDate,
-                ExtensionReason = extension.ExtensionReason,
+                EquipmentId = maintenance?.EquipmentId,
+                EquipmentName = equipment?.Name,
+                OriginalEndDate = extension.OriginalCompletionDate,
+                NewEndDate = extension.NewCompletionDate,
+                ExtensionReason = extension.Reason,
                 Status = extension.Status,
                 StatusText = GetStatusText(extension.Status),
                 Applicant = extension.Applicant,
                 Approver = extension.Approver,
                 ApprovalDate = extension.ApprovalDate,
-                Creator = extension.Creator,
                 CreateDate = extension.CreateDate
             };
 
@@ -395,23 +316,18 @@ namespace CDGService.WebAPI.DataCore
             var extension = new EquipmentMaintenanceExtension
             {
                 Id = Guid.NewGuid().ToString(),
-                ExtensionNo = input.ExtensionNo,
                 MaintenanceId = input.MaintenanceId,
-                EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
-                ApplyDate = input.ApplyDate,
-                OriginalEndDate = input.OriginalEndDate,
-                NewEndDate = input.NewEndDate,
-                ExtensionReason = input.ExtensionReason,
+                OriginalCompletionDate = input.OriginalEndDate ?? DateTime.Now,
+                NewCompletionDate = input.NewEndDate,
+                Reason = input.ExtensionReason,
                 Status = input.Status,
                 Applicant = input.Applicant,
                 Approver = input.Approver,
                 ApprovalDate = input.ApprovalDate,
-                Creator = input.Creator,
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentMaintenanceExtensionRepository.AddAsync(extension);
+            _equipmentMaintenanceExtensionRepository.Insert(extension);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -420,17 +336,13 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateMaintenanceExtensionAsync(EquipmentMaintenanceExtensionInput input)
         {
-            var extension = await _equipmentMaintenanceExtensionRepository.GetByIdAsync(input.Id);
+            var extension = await _equipmentMaintenanceExtensionRepository.GetFirstOrDefaultAsync(e => e.Id == input.Id);
             if (extension == null) return false;
 
-            extension.ExtensionNo = input.ExtensionNo;
             extension.MaintenanceId = input.MaintenanceId;
-            extension.EquipmentId = input.EquipmentId;
-            extension.TenantId = input.TenantId;
-            extension.ApplyDate = input.ApplyDate;
-            extension.OriginalEndDate = input.OriginalEndDate;
-            extension.NewEndDate = input.NewEndDate;
-            extension.ExtensionReason = input.ExtensionReason;
+            extension.OriginalCompletionDate = input.OriginalEndDate ?? DateTime.Now;
+            extension.NewCompletionDate = input.NewEndDate;
+            extension.Reason = input.ExtensionReason;
             extension.Status = input.Status;
             extension.Applicant = input.Applicant;
             extension.Approver = input.Approver;
@@ -445,7 +357,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> ApproveMaintenanceExtensionAsync(string id, int status, string approver)
         {
-            var extension = await _equipmentMaintenanceExtensionRepository.GetByIdAsync(id);
+            var extension = await _equipmentMaintenanceExtensionRepository.GetFirstOrDefaultAsync(e => e.Id == id);
             if (extension == null) return false;
 
             extension.Status = status;
@@ -461,10 +373,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteMaintenanceExtensionAsync(string id)
         {
-            var extension = await _equipmentMaintenanceExtensionRepository.GetByIdAsync(id);
+            var extension = await _equipmentMaintenanceExtensionRepository.GetFirstOrDefaultAsync(e => e.Id == id);
             if (extension == null) return false;
 
-            _equipmentMaintenanceExtensionRepository.Delete(extension);
+            _equipmentMaintenanceExtensionRepository.Remove(extension);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 

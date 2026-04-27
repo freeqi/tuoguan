@@ -13,18 +13,20 @@ namespace CDGService.WebAPI.DataCore
         private readonly IRepository<EquipmentScrap> _equipmentScrapRepository;
         private readonly IRepository<EquipmentReturn> _equipmentReturnRepository;
         private readonly IRepository<EquipmentInspection> _equipmentInspectionRepository;
-        private readonly IRepository<Equipment> _equipmentRepository;
+        private readonly IRepository<EquipmentInfo> _equipmentRepository;
         private readonly IRepository<Tenant> _tenantRepository;
         private readonly IRepository<EquipmentRental> _equipmentRentalRepository;
+        private readonly IRepository<EquipmentRentalDetail> _equipmentRentalDetailRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public EquipmentScrapManager(
             IRepository<EquipmentScrap> equipmentScrapRepository,
             IRepository<EquipmentReturn> equipmentReturnRepository,
             IRepository<EquipmentInspection> equipmentInspectionRepository,
-            IRepository<Equipment> equipmentRepository,
+            IRepository<EquipmentInfo> equipmentRepository,
             IRepository<Tenant> tenantRepository,
             IRepository<EquipmentRental> equipmentRentalRepository,
+            IRepository<EquipmentRentalDetail> equipmentRentalDetailRepository,
             IUnitOfWork unitOfWork)
         {
             _equipmentScrapRepository = equipmentScrapRepository;
@@ -33,6 +35,7 @@ namespace CDGService.WebAPI.DataCore
             _equipmentRepository = equipmentRepository;
             _tenantRepository = tenantRepository;
             _equipmentRentalRepository = equipmentRentalRepository;
+            _equipmentRentalDetailRepository = equipmentRentalDetailRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -46,22 +49,16 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var scrap in scraps)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(scrap.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(scrap.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == scrap.EquipmentId);
 
                 var scrapOutput = new EquipmentScrapOutput
                 {
                     Id = scrap.Id,
                     ScrapNo = scrap.ScrapNo,
                     EquipmentId = scrap.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = scrap.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentName = equipment?.Name,
                     ScrapDate = scrap.ScrapDate,
-                    ScrapReasonType = scrap.ScrapReasonType,
-                    ScrapReasonTypeText = GetScrapReasonTypeText(scrap.ScrapReasonType),
                     ScrapReason = scrap.ScrapReason,
-                    ScrapHandler = scrap.ScrapHandler,
                     Remark = scrap.Remark,
                     Creator = scrap.Creator,
                     CreateDate = scrap.CreateDate
@@ -78,25 +75,19 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentScrapOutput> GetScrapByIdAsync(string id)
         {
-            var scrap = await _equipmentScrapRepository.GetByIdAsync(id);
+            var scrap = await _equipmentScrapRepository.GetFirstOrDefaultAsync(s => s.Id == id);
             if (scrap == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(scrap.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(scrap.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == scrap.EquipmentId);
 
             var result = new EquipmentScrapOutput
             {
                 Id = scrap.Id,
                 ScrapNo = scrap.ScrapNo,
                 EquipmentId = scrap.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = scrap.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentName = equipment?.Name,
                 ScrapDate = scrap.ScrapDate,
-                ScrapReasonType = scrap.ScrapReasonType,
-                ScrapReasonTypeText = GetScrapReasonTypeText(scrap.ScrapReasonType),
                 ScrapReason = scrap.ScrapReason,
-                ScrapHandler = scrap.ScrapHandler,
                 Remark = scrap.Remark,
                 Creator = scrap.Creator,
                 CreateDate = scrap.CreateDate
@@ -115,17 +106,14 @@ namespace CDGService.WebAPI.DataCore
                 Id = Guid.NewGuid().ToString(),
                 ScrapNo = input.ScrapNo,
                 EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
                 ScrapDate = input.ScrapDate,
-                ScrapReasonType = input.ScrapReasonType,
                 ScrapReason = input.ScrapReason,
-                ScrapHandler = input.ScrapHandler,
                 Remark = input.Remark,
                 Creator = input.Creator,
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentScrapRepository.AddAsync(scrap);
+            _equipmentScrapRepository.Insert(scrap);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -134,16 +122,13 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateScrapAsync(EquipmentScrapInput input)
         {
-            var scrap = await _equipmentScrapRepository.GetByIdAsync(input.Id);
+            var scrap = await _equipmentScrapRepository.GetFirstOrDefaultAsync(s => s.Id == input.Id);
             if (scrap == null) return false;
 
             scrap.ScrapNo = input.ScrapNo;
             scrap.EquipmentId = input.EquipmentId;
-            scrap.TenantId = input.TenantId;
             scrap.ScrapDate = input.ScrapDate;
-            scrap.ScrapReasonType = input.ScrapReasonType;
             scrap.ScrapReason = input.ScrapReason;
-            scrap.ScrapHandler = input.ScrapHandler;
             scrap.Remark = input.Remark;
 
             _equipmentScrapRepository.Update(scrap);
@@ -155,10 +140,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteScrapAsync(string id)
         {
-            var scrap = await _equipmentScrapRepository.GetByIdAsync(id);
+            var scrap = await _equipmentScrapRepository.GetFirstOrDefaultAsync(s => s.Id == id);
             if (scrap == null) return false;
 
-            _equipmentScrapRepository.Delete(scrap);
+            _equipmentScrapRepository.Remove(scrap);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -172,25 +157,23 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var returnRecord in returns)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(returnRecord.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(returnRecord.TenantId);
-                var rental = await _equipmentRentalRepository.GetByIdAsync(returnRecord.RentalId);
+                var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == returnRecord.RentalId);
+                var rentalDetails = rental != null ? (await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == rental.Id)).ToList() : new List<EquipmentRentalDetail>();
+                var equipmentId = rentalDetails.FirstOrDefault()?.EquipmentId;
+                var equipment = equipmentId != null ? await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == equipmentId) : null;
 
                 var returnOutput = new EquipmentReturnOutput
                 {
                     Id = returnRecord.Id,
                     ReturnNo = returnRecord.ReturnNo,
-                    EquipmentId = returnRecord.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = returnRecord.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentId = equipmentId,
+                    EquipmentName = equipment?.Name,
                     RentalId = returnRecord.RentalId,
                     RentalNo = rental?.RentalNo,
                     ReturnDate = returnRecord.ReturnDate,
-                    ReturnStatus = returnRecord.ReturnStatus,
-                    ReturnStatusText = GetReturnStatusText(returnRecord.ReturnStatus),
+                    ReturnStatus = returnRecord.Status,
+                    ReturnStatusText = GetReturnStatusText(returnRecord.Status),
                     ReturnReason = returnRecord.ReturnReason,
-                    ReturnHandler = returnRecord.ReturnHandler,
                     Remark = returnRecord.Remark,
                     Creator = returnRecord.Creator,
                     CreateDate = returnRecord.CreateDate
@@ -207,28 +190,26 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentReturnOutput> GetReturnByIdAsync(string id)
         {
-            var returnRecord = await _equipmentReturnRepository.GetByIdAsync(id);
+            var returnRecord = await _equipmentReturnRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (returnRecord == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(returnRecord.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(returnRecord.TenantId);
-            var rental = await _equipmentRentalRepository.GetByIdAsync(returnRecord.RentalId);
+            var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == returnRecord.RentalId);
+            var rentalDetails = rental != null ? (await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == rental.Id)).ToList() : new List<EquipmentRentalDetail>();
+            var equipmentId = rentalDetails.FirstOrDefault()?.EquipmentId;
+            var equipment = equipmentId != null ? await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == equipmentId) : null;
 
             var result = new EquipmentReturnOutput
             {
                 Id = returnRecord.Id,
                 ReturnNo = returnRecord.ReturnNo,
-                EquipmentId = returnRecord.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = returnRecord.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentId = equipmentId,
+                EquipmentName = equipment?.Name,
                 RentalId = returnRecord.RentalId,
                 RentalNo = rental?.RentalNo,
                 ReturnDate = returnRecord.ReturnDate,
-                ReturnStatus = returnRecord.ReturnStatus,
-                ReturnStatusText = GetReturnStatusText(returnRecord.ReturnStatus),
+                ReturnStatus = returnRecord.Status,
+                ReturnStatusText = GetReturnStatusText(returnRecord.Status),
                 ReturnReason = returnRecord.ReturnReason,
-                ReturnHandler = returnRecord.ReturnHandler,
                 Remark = returnRecord.Remark,
                 Creator = returnRecord.Creator,
                 CreateDate = returnRecord.CreateDate
@@ -246,19 +227,16 @@ namespace CDGService.WebAPI.DataCore
             {
                 Id = Guid.NewGuid().ToString(),
                 ReturnNo = input.ReturnNo,
-                EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
                 RentalId = input.RentalId,
                 ReturnDate = input.ReturnDate,
-                ReturnStatus = input.ReturnStatus,
+                Status = input.ReturnStatus,
                 ReturnReason = input.ReturnReason,
-                ReturnHandler = input.ReturnHandler,
                 Remark = input.Remark,
                 Creator = input.Creator,
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentReturnRepository.AddAsync(returnRecord);
+            _equipmentReturnRepository.Insert(returnRecord);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -267,17 +245,14 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateReturnAsync(EquipmentReturnInput input)
         {
-            var returnRecord = await _equipmentReturnRepository.GetByIdAsync(input.Id);
+            var returnRecord = await _equipmentReturnRepository.GetFirstOrDefaultAsync(r => r.Id == input.Id);
             if (returnRecord == null) return false;
 
             returnRecord.ReturnNo = input.ReturnNo;
-            returnRecord.EquipmentId = input.EquipmentId;
-            returnRecord.TenantId = input.TenantId;
             returnRecord.RentalId = input.RentalId;
             returnRecord.ReturnDate = input.ReturnDate;
-            returnRecord.ReturnStatus = input.ReturnStatus;
+            returnRecord.Status = input.ReturnStatus;
             returnRecord.ReturnReason = input.ReturnReason;
-            returnRecord.ReturnHandler = input.ReturnHandler;
             returnRecord.Remark = input.Remark;
 
             _equipmentReturnRepository.Update(returnRecord);
@@ -289,10 +264,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteReturnAsync(string id)
         {
-            var returnRecord = await _equipmentReturnRepository.GetByIdAsync(id);
+            var returnRecord = await _equipmentReturnRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (returnRecord == null) return false;
 
-            _equipmentReturnRepository.Delete(returnRecord);
+            _equipmentReturnRepository.Remove(returnRecord);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -306,25 +281,17 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var inspection in inspections)
             {
-                var equipment = await _equipmentRepository.GetByIdAsync(inspection.EquipmentId);
-                var tenant = await _tenantRepository.GetByIdAsync(inspection.TenantId);
+                var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == inspection.EquipmentId);
 
                 var inspectionOutput = new EquipmentInspectionOutput
                 {
                     Id = inspection.Id,
                     InspectionNo = inspection.InspectionNo,
                     EquipmentId = inspection.EquipmentId,
-                    EquipmentName = equipment?.EquipmentName,
-                    TenantId = inspection.TenantId,
-                    TenantName = tenant?.TenantName,
+                    EquipmentName = equipment?.Name,
                     InspectionDate = inspection.InspectionDate,
-                    InspectionType = inspection.InspectionType,
-                    InspectionTypeText = GetInspectionTypeText(inspection.InspectionType),
                     Inspector = inspection.Inspector,
-                    InspectionResult = inspection.InspectionResult,
-                    InspectionResultText = GetInspectionResultText(inspection.InspectionResult),
-                    ProblemDescription = inspection.ProblemDescription,
-                    HandlingSuggestion = inspection.HandlingSuggestion,
+                    InspectionResult = int.Parse(inspection.InspectionResult),
                     Remark = inspection.Remark,
                     Creator = inspection.Creator,
                     CreateDate = inspection.CreateDate
@@ -341,28 +308,20 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentInspectionOutput> GetInspectionByIdAsync(string id)
         {
-            var inspection = await _equipmentInspectionRepository.GetByIdAsync(id);
+            var inspection = await _equipmentInspectionRepository.GetFirstOrDefaultAsync(i => i.Id == id);
             if (inspection == null) return null;
 
-            var equipment = await _equipmentRepository.GetByIdAsync(inspection.EquipmentId);
-            var tenant = await _tenantRepository.GetByIdAsync(inspection.TenantId);
+            var equipment = await _equipmentRepository.GetFirstOrDefaultAsync(e => e.Id == inspection.EquipmentId);
 
             var result = new EquipmentInspectionOutput
             {
                 Id = inspection.Id,
                 InspectionNo = inspection.InspectionNo,
                 EquipmentId = inspection.EquipmentId,
-                EquipmentName = equipment?.EquipmentName,
-                TenantId = inspection.TenantId,
-                TenantName = tenant?.TenantName,
+                EquipmentName = equipment?.Name,
                 InspectionDate = inspection.InspectionDate,
-                InspectionType = inspection.InspectionType,
-                InspectionTypeText = GetInspectionTypeText(inspection.InspectionType),
                 Inspector = inspection.Inspector,
-                InspectionResult = inspection.InspectionResult,
-                InspectionResultText = GetInspectionResultText(inspection.InspectionResult),
-                ProblemDescription = inspection.ProblemDescription,
-                HandlingSuggestion = inspection.HandlingSuggestion,
+                InspectionResult = int.Parse(inspection.InspectionResult),
                 Remark = inspection.Remark,
                 Creator = inspection.Creator,
                 CreateDate = inspection.CreateDate
@@ -381,19 +340,15 @@ namespace CDGService.WebAPI.DataCore
                 Id = Guid.NewGuid().ToString(),
                 InspectionNo = input.InspectionNo,
                 EquipmentId = input.EquipmentId,
-                TenantId = input.TenantId,
                 InspectionDate = input.InspectionDate,
-                InspectionType = input.InspectionType,
                 Inspector = input.Inspector,
-                InspectionResult = input.InspectionResult,
-                ProblemDescription = input.ProblemDescription,
-                HandlingSuggestion = input.HandlingSuggestion,
+                InspectionResult = input.InspectionResult.ToString(),
                 Remark = input.Remark,
                 Creator = input.Creator,
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentInspectionRepository.AddAsync(inspection);
+            _equipmentInspectionRepository.Insert(inspection);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -402,18 +357,14 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateInspectionAsync(EquipmentInspectionInput input)
         {
-            var inspection = await _equipmentInspectionRepository.GetByIdAsync(input.Id);
+            var inspection = await _equipmentInspectionRepository.GetFirstOrDefaultAsync(i => i.Id == input.Id);
             if (inspection == null) return false;
 
             inspection.InspectionNo = input.InspectionNo;
             inspection.EquipmentId = input.EquipmentId;
-            inspection.TenantId = input.TenantId;
             inspection.InspectionDate = input.InspectionDate;
-            inspection.InspectionType = input.InspectionType;
             inspection.Inspector = input.Inspector;
-            inspection.InspectionResult = input.InspectionResult;
-            inspection.ProblemDescription = input.ProblemDescription;
-            inspection.HandlingSuggestion = input.HandlingSuggestion;
+            inspection.InspectionResult = input.InspectionResult.ToString();
             inspection.Remark = input.Remark;
 
             _equipmentInspectionRepository.Update(inspection);
@@ -425,10 +376,10 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteInspectionAsync(string id)
         {
-            var inspection = await _equipmentInspectionRepository.GetByIdAsync(id);
+            var inspection = await _equipmentInspectionRepository.GetFirstOrDefaultAsync(i => i.Id == id);
             if (inspection == null) return false;
 
-            _equipmentInspectionRepository.Delete(inspection);
+            _equipmentInspectionRepository.Remove(inspection);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 

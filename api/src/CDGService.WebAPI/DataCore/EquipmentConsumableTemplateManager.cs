@@ -53,8 +53,8 @@ namespace CDGService.WebAPI.DataCore
             foreach (var template in templates)
             {
                 var details = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == template.Id);
-                var equipmentType = await _equipmentTypeRepository.GetByIdAsync(template.EquipmentTypeId);
-                var equipmentModel = await _equipmentModelRepository.GetByIdAsync(template.EquipmentModelId);
+                var equipmentType = await _equipmentTypeRepository.GetFirstOrDefaultAsync(et => et.Id == template.EquipmentTypeId);
+                var equipmentModel = await _equipmentModelRepository.GetFirstOrDefaultAsync(em => em.Id == template.EquipmentModelId);
 
                 var templateOutput = new EquipmentConsumableTemplateOutput
                 {
@@ -79,7 +79,7 @@ namespace CDGService.WebAPI.DataCore
 
                 foreach (var detail in details)
                 {
-                    var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                    var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(mi => mi.Id == detail.MedicalItemId);
                     templateOutput.Details.Add(new EquipmentConsumableTemplateDetailOutput
                     {
                         Id = detail.Id,
@@ -106,12 +106,12 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentConsumableTemplateOutput> GetTemplateByIdAsync(string id)
         {
-            var template = await _equipmentConsumableTemplateRepository.GetByIdAsync(id);
+            var template = await _equipmentConsumableTemplateRepository.GetFirstOrDefaultAsync(t => t.Id == id);
             if (template == null) return null;
 
             var details = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == id);
-            var equipmentType = await _equipmentTypeRepository.GetByIdAsync(template.EquipmentTypeId);
-            var equipmentModel = await _equipmentModelRepository.GetByIdAsync(template.EquipmentModelId);
+            var equipmentType = await _equipmentTypeRepository.GetFirstOrDefaultAsync(et => et.Id == template.EquipmentTypeId);
+            var equipmentModel = await _equipmentModelRepository.GetFirstOrDefaultAsync(em => em.Id == template.EquipmentModelId);
 
             var result = new EquipmentConsumableTemplateOutput
             {
@@ -136,7 +136,7 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var detail in details)
             {
-                var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(mi => mi.Id == detail.MedicalItemId);
                 result.Details.Add(new EquipmentConsumableTemplateDetailOutput
                 {
                     Id = detail.Id,
@@ -160,58 +160,45 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddTemplateAsync(EquipmentConsumableTemplateInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var template = new EquipmentConsumableTemplate
             {
-                try
+                Id = Guid.NewGuid().ToString(),
+                TemplateName = input.TemplateName,
+                EquipmentTypeId = input.EquipmentTypeId,
+                EquipmentModelId = input.EquipmentModelId,
+                TemplateType = input.TemplateType,
+                Status = input.Status,
+                CenterId = input.CenterId,
+                Remark = input.Remark,
+                Founder = input.Founder,
+                FounderDate = DateTime.Now,
+                Modifier = input.Modifier,
+                ModifierDate = DateTime.Now
+            };
+
+            _equipmentConsumableTemplateRepository.Insert(template);
+
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var template = new EquipmentConsumableTemplate
+                    var detail = new EquipmentConsumableTemplateDetail
                     {
                         Id = Guid.NewGuid().ToString(),
-                        TemplateName = input.TemplateName,
-                        EquipmentTypeId = input.EquipmentTypeId,
-                        EquipmentModelId = input.EquipmentModelId,
-                        TemplateType = input.TemplateType,
-                        Status = input.Status,
-                        CenterId = input.CenterId,
-                        Remark = input.Remark,
-                        Founder = input.Founder,
-                        FounderDate = DateTime.Now,
-                        Modifier = input.Modifier,
-                        ModifierDate = DateTime.Now
+                        TemplateId = template.Id,
+                        MedicalItemId = detailInput.MedicalItemId,
+                        ConsumableName = detailInput.ConsumableName,
+                        Quantity = detailInput.Quantity,
+                        Unit = detailInput.Unit,
+                        Remark = detailInput.Remark,
+                        Founder = detailInput.Founder,
+                        FounderDate = DateTime.Now
                     };
-
-                    await _equipmentConsumableTemplateRepository.AddAsync(template);
-
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
-                        {
-                            var detail = new EquipmentConsumableTemplateDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                TemplateId = template.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                ConsumableName = detailInput.ConsumableName,
-                                Quantity = detailInput.Quantity,
-                                Unit = detailInput.Unit,
-                                Remark = detailInput.Remark,
-                                Founder = detailInput.Founder,
-                                FounderDate = DateTime.Now
-                            };
-                            await _equipmentConsumableTemplateDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                    _equipmentConsumableTemplateDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -219,63 +206,50 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateTemplateAsync(EquipmentConsumableTemplateInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var template = await _equipmentConsumableTemplateRepository.GetFirstOrDefaultAsync(t => t.Id == input.Id);
+            if (template == null) return false;
+
+            template.TemplateName = input.TemplateName;
+            template.EquipmentTypeId = input.EquipmentTypeId;
+            template.EquipmentModelId = input.EquipmentModelId;
+            template.TemplateType = input.TemplateType;
+            template.Status = input.Status;
+            template.CenterId = input.CenterId;
+            template.Remark = input.Remark;
+            template.Modifier = input.Modifier;
+            template.ModifierDate = DateTime.Now;
+
+            _equipmentConsumableTemplateRepository.Update(template);
+
+            // 删除旧的详情
+            var oldDetails = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == input.Id);
+            foreach (var oldDetail in oldDetails)
             {
-                try
+                _equipmentConsumableTemplateDetailRepository.Remove(oldDetail);
+            }
+
+            // 添加新的详情
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var template = await _equipmentConsumableTemplateRepository.GetByIdAsync(input.Id);
-                    if (template == null) return false;
-
-                    template.TemplateName = input.TemplateName;
-                    template.EquipmentTypeId = input.EquipmentTypeId;
-                    template.EquipmentModelId = input.EquipmentModelId;
-                    template.TemplateType = input.TemplateType;
-                    template.Status = input.Status;
-                    template.CenterId = input.CenterId;
-                    template.Remark = input.Remark;
-                    template.Modifier = input.Modifier;
-                    template.ModifierDate = DateTime.Now;
-
-                    _equipmentConsumableTemplateRepository.Update(template);
-
-                    // 删除旧的详情
-                    var oldDetails = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == input.Id);
-                    foreach (var oldDetail in oldDetails)
+                    var detail = new EquipmentConsumableTemplateDetail
                     {
-                        _equipmentConsumableTemplateDetailRepository.Delete(oldDetail);
-                    }
-
-                    // 添加新的详情
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
-                        {
-                            var detail = new EquipmentConsumableTemplateDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                TemplateId = template.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                ConsumableName = detailInput.ConsumableName,
-                                Quantity = detailInput.Quantity,
-                                Unit = detailInput.Unit,
-                                Remark = detailInput.Remark,
-                                Founder = detailInput.Founder,
-                                FounderDate = DateTime.Now
-                            };
-                            await _equipmentConsumableTemplateDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                        Id = Guid.NewGuid().ToString(),
+                        TemplateId = template.Id,
+                        MedicalItemId = detailInput.MedicalItemId,
+                        ConsumableName = detailInput.ConsumableName,
+                        Quantity = detailInput.Quantity,
+                        Unit = detailInput.Unit,
+                        Remark = detailInput.Remark,
+                        Founder = detailInput.Founder,
+                        FounderDate = DateTime.Now
+                    };
+                    _equipmentConsumableTemplateDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -283,33 +257,20 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteTemplateAsync(string id)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var template = await _equipmentConsumableTemplateRepository.GetFirstOrDefaultAsync(t => t.Id == id);
+            if (template == null) return false;
+
+            // 删除模板详情
+            var details = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == id);
+            foreach (var detail in details)
             {
-                try
-                {
-                    var template = await _equipmentConsumableTemplateRepository.GetByIdAsync(id);
-                    if (template == null) return false;
-
-                    // 删除模板详情
-                    var details = await _equipmentConsumableTemplateDetailRepository.GetAllAsync(d => d.TemplateId == id);
-                    foreach (var detail in details)
-                    {
-                        _equipmentConsumableTemplateDetailRepository.Delete(detail);
-                    }
-
-                    // 删除模板
-                    _equipmentConsumableTemplateRepository.Delete(template);
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                _equipmentConsumableTemplateDetailRepository.Remove(detail);
             }
+
+            // 删除模板
+            _equipmentConsumableTemplateRepository.Remove(template);
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -323,7 +284,7 @@ namespace CDGService.WebAPI.DataCore
             foreach (var request in requests)
             {
                 var details = await _consumablePurchaseRequestDetailRepository.GetAllAsync(d => d.RequestId == request.Id);
-                var tenant = await _tenantRepository.GetByIdAsync(request.TenantId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == request.TenantId);
 
                 var requestOutput = new ConsumablePurchaseRequestOutput
                 {
@@ -346,7 +307,7 @@ namespace CDGService.WebAPI.DataCore
 
                 foreach (var detail in details)
                 {
-                    var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                    var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(mi => mi.Id == detail.MedicalItemId);
                     requestOutput.Details.Add(new ConsumablePurchaseRequestDetailOutput
                     {
                         Id = detail.Id,
@@ -373,11 +334,11 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<ConsumablePurchaseRequestOutput> GetPurchaseRequestByIdAsync(string id)
         {
-            var request = await _consumablePurchaseRequestRepository.GetByIdAsync(id);
+            var request = await _consumablePurchaseRequestRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (request == null) return null;
 
             var details = await _consumablePurchaseRequestDetailRepository.GetAllAsync(d => d.RequestId == id);
-            var tenant = await _tenantRepository.GetByIdAsync(request.TenantId);
+            var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == request.TenantId);
 
             var result = new ConsumablePurchaseRequestOutput
             {
@@ -400,7 +361,7 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var detail in details)
             {
-                var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(mi => mi.Id == detail.MedicalItemId);
                 result.Details.Add(new ConsumablePurchaseRequestDetailOutput
                 {
                     Id = detail.Id,
@@ -424,56 +385,43 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddPurchaseRequestAsync(ConsumablePurchaseRequestInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var request = new ConsumablePurchaseRequest
             {
-                try
+                Id = Guid.NewGuid().ToString(),
+                RequestNo = input.RequestNo,
+                TenantId = input.TenantId,
+                RequestDate = input.RequestDate,
+                EstimatedArrivalDate = input.EstimatedArrivalDate,
+                Status = input.Status,
+                Remark = input.Remark,
+                Applicant = input.Applicant,
+                Approver = input.Approver,
+                ApprovalDate = input.ApprovalDate,
+                Creator = input.Creator,
+                CreateDate = DateTime.Now
+            };
+
+            _consumablePurchaseRequestRepository.Insert(request);
+
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var request = new ConsumablePurchaseRequest
+                    var detail = new ConsumablePurchaseRequestDetail
                     {
                         Id = Guid.NewGuid().ToString(),
-                        RequestNo = input.RequestNo,
-                        TenantId = input.TenantId,
-                        RequestDate = input.RequestDate,
-                        EstimatedArrivalDate = input.EstimatedArrivalDate,
-                        Status = input.Status,
-                        Remark = input.Remark,
-                        Applicant = input.Applicant,
-                        Approver = input.Approver,
-                        ApprovalDate = input.ApprovalDate,
-                        Creator = input.Creator,
-                        CreateDate = DateTime.Now
+                        RequestId = request.Id,
+                        MedicalItemId = detailInput.MedicalItemId,
+                        PurchaseQuantity = detailInput.PurchaseQuantity,
+                        Unit = detailInput.Unit,
+                        EstimatedUnitPrice = detailInput.EstimatedUnitPrice,
+                        Remark = detailInput.Remark
                     };
-
-                    await _consumablePurchaseRequestRepository.AddAsync(request);
-
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
-                        {
-                            var detail = new ConsumablePurchaseRequestDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                RequestId = request.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                PurchaseQuantity = detailInput.PurchaseQuantity,
-                                Unit = detailInput.Unit,
-                                EstimatedUnitPrice = detailInput.EstimatedUnitPrice,
-                                Remark = detailInput.Remark
-                            };
-                            await _consumablePurchaseRequestDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                    _consumablePurchaseRequestDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -481,61 +429,48 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdatePurchaseRequestAsync(ConsumablePurchaseRequestInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            var request = await _consumablePurchaseRequestRepository.GetFirstOrDefaultAsync(r => r.Id == input.Id);
+            if (request == null) return false;
+
+            request.RequestNo = input.RequestNo;
+            request.TenantId = input.TenantId;
+            request.RequestDate = input.RequestDate;
+            request.EstimatedArrivalDate = input.EstimatedArrivalDate;
+            request.Status = input.Status;
+            request.Remark = input.Remark;
+            request.Applicant = input.Applicant;
+            request.Approver = input.Approver;
+            request.ApprovalDate = input.ApprovalDate;
+
+            _consumablePurchaseRequestRepository.Update(request);
+
+            // 删除旧的详情
+            var oldDetails = await _consumablePurchaseRequestDetailRepository.GetAllAsync(d => d.RequestId == input.Id);
+            foreach (var oldDetail in oldDetails)
             {
-                try
+                _consumablePurchaseRequestDetailRepository.Remove(oldDetail);
+            }
+
+            // 添加新的详情
+            if (input.Details != null && input.Details.Count > 0)
+            {
+                foreach (var detailInput in input.Details)
                 {
-                    var request = await _consumablePurchaseRequestRepository.GetByIdAsync(input.Id);
-                    if (request == null) return false;
-
-                    request.RequestNo = input.RequestNo;
-                    request.TenantId = input.TenantId;
-                    request.RequestDate = input.RequestDate;
-                    request.EstimatedArrivalDate = input.EstimatedArrivalDate;
-                    request.Status = input.Status;
-                    request.Remark = input.Remark;
-                    request.Applicant = input.Applicant;
-                    request.Approver = input.Approver;
-                    request.ApprovalDate = input.ApprovalDate;
-
-                    _consumablePurchaseRequestRepository.Update(request);
-
-                    // 删除旧的详情
-                    var oldDetails = await _consumablePurchaseRequestDetailRepository.GetAllAsync(d => d.RequestId == input.Id);
-                    foreach (var oldDetail in oldDetails)
+                    var detail = new ConsumablePurchaseRequestDetail
                     {
-                        _consumablePurchaseRequestDetailRepository.Delete(oldDetail);
-                    }
-
-                    // 添加新的详情
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
-                        {
-                            var detail = new ConsumablePurchaseRequestDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                RequestId = request.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                PurchaseQuantity = detailInput.PurchaseQuantity,
-                                Unit = detailInput.Unit,
-                                EstimatedUnitPrice = detailInput.EstimatedUnitPrice,
-                                Remark = detailInput.Remark
-                            };
-                            await _consumablePurchaseRequestDetailRepository.AddAsync(detail);
-                        }
-                    }
-
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
+                        Id = Guid.NewGuid().ToString(),
+                        RequestId = request.Id,
+                        MedicalItemId = detailInput.MedicalItemId,
+                        PurchaseQuantity = detailInput.PurchaseQuantity,
+                        Unit = detailInput.Unit,
+                        EstimatedUnitPrice = detailInput.EstimatedUnitPrice,
+                        Remark = detailInput.Remark
+                    };
+                    _consumablePurchaseRequestDetailRepository.Insert(detail);
                 }
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -543,7 +478,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> ApprovePurchaseRequestAsync(string id, int status, string approver)
         {
-            var request = await _consumablePurchaseRequestRepository.GetByIdAsync(id);
+            var request = await _consumablePurchaseRequestRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (request == null) return false;
 
             request.Status = status;

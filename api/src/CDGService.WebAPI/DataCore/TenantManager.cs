@@ -52,7 +52,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<TenantOutput> GetTenantByIdAsync(string id)
         {
-            var tenant = await _tenantRepository.GetByIdAsync(id);
+            var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == id);
             if (tenant == null) return null;
 
             return new TenantOutput
@@ -92,7 +92,7 @@ namespace CDGService.WebAPI.DataCore
                 FounderDate = DateTime.Now
             };
 
-            await _tenantRepository.AddAsync(tenant);
+            _tenantRepository.Insert(tenant);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -101,7 +101,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateTenantAsync(TenantInput input)
         {
-            var tenant = await _tenantRepository.GetByIdAsync(input.Id);
+            var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == input.Id);
             if (tenant == null) return false;
 
             tenant.TenantName = input.TenantName;
@@ -123,7 +123,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteTenantAsync(string id)
         {
-            var tenant = await _tenantRepository.GetByIdAsync(id);
+            var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == id);
             if (tenant == null) return false;
 
             tenant.IsDelete = true;
@@ -146,7 +146,7 @@ namespace CDGService.WebAPI.DataCore
                 TenantId = input.TenantId
             };
 
-            await _userTenantRepository.AddAsync(userTenant);
+            _userTenantRepository.Insert(userTenant);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -158,7 +158,7 @@ namespace CDGService.WebAPI.DataCore
             var userTenant = await _userTenantRepository.GetAllAsync(ut => ut.UserId == input.UserId && ut.TenantId == input.TenantId);
             if (!userTenant.Any()) return false;
 
-            _userTenantRepository.Delete(userTenant.First());
+            _userTenantRepository.Remove(userTenant.First());
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -175,7 +175,7 @@ namespace CDGService.WebAPI.DataCore
             {
                 UserId = u.Id,
                 UserName = u.UserName,
-                RealName = u.RealName,
+                RealName = u.Name,
                 TenantId = tenantId
             }).ToList();
         }

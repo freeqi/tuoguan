@@ -109,7 +109,7 @@ namespace CDGService.WebAPI.Controllers
         /// 处理库存预警
         /// </summary>
         [HttpPut("warnings/{id}/handle")]
-        public async Task<ActionResult<bool>> HandleInventoryWarning(string id, [FromBody] HandleWarningRequest request)
+        public async Task<ActionResult<bool>> HandleInventoryWarning(string id, [FromBody] InventoryHandleWarningRequest request)
         {
             try
             {
@@ -144,9 +144,9 @@ namespace CDGService.WebAPI.Controllers
         }
 
         /// <summary>
-        /// 处理预警请求
+        /// 库存预警处理请求
         /// </summary>
-        public class HandleWarningRequest
+        public class InventoryHandleWarningRequest
         {
             public int ProcessingStatus { get; set; }
             public string Handler { get; set; }

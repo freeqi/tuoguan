@@ -53,7 +53,7 @@ namespace CDGService.WebAPI.DataCore
             foreach (var inbound in inbounds)
             {
                 var details = await _consumableInboundDetailRepository.GetAllAsync(d => d.InboundId == inbound.Id);
-                var tenant = await _tenantRepository.GetByIdAsync(inbound.TenantId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == inbound.TenantId);
 
                 var inboundOutput = new ConsumableInboundOutput
                 {
@@ -73,7 +73,7 @@ namespace CDGService.WebAPI.DataCore
 
                 foreach (var detail in details)
                 {
-                    var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                    var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == detail.MedicalItemId);
                     inboundOutput.Details.Add(new ConsumableInboundDetailOutput
                     {
                         Id = detail.Id,
@@ -84,7 +84,7 @@ namespace CDGService.WebAPI.DataCore
                         BatchNo = detail.BatchNo,
                         ExpiryDate = detail.ExpiryDate,
                         Quantity = detail.Quantity,
-                        Unit = medicalItem?.Unit,
+                        Unit = medicalItem?.PackageUnit,
                         UnitPrice = detail.UnitPrice,
                         TotalPrice = detail.Quantity * detail.UnitPrice,
                         Remark = detail.Remark
@@ -102,56 +102,52 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddInboundAsync(ConsumableInboundInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                var inbound = new ConsumableInbound
                 {
-                    var inbound = new ConsumableInbound
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        InboundNo = input.InboundNo,
-                        TenantId = input.TenantId,
-                        SupplierId = input.SupplierId,
-                        InboundDate = input.InboundDate,
-                        Operator = input.Operator,
-                        Remark = input.Remark,
-                        Creator = input.Creator,
-                        CreateDate = DateTime.Now
-                    };
+                    Id = Guid.NewGuid().ToString(),
+                    InboundNo = input.InboundNo,
+                    TenantId = input.TenantId,
+                    SupplierId = input.SupplierId,
+                    InboundDate = input.InboundDate,
+                    Operator = input.Operator,
+                    Remark = input.Remark,
+                    Creator = input.Creator,
+                    CreateDate = DateTime.Now
+                };
 
-                    await _consumableInboundRepository.AddAsync(inbound);
+                _consumableInboundRepository.Insert(inbound);
 
-                    if (input.Details != null && input.Details.Count > 0)
+                if (input.Details != null && input.Details.Count > 0)
+                {
+                    foreach (var detailInput in input.Details)
                     {
-                        foreach (var detailInput in input.Details)
+                        var detail = new ConsumableInboundDetail
                         {
-                            var detail = new ConsumableInboundDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                InboundId = inbound.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                BatchNo = detailInput.BatchNo,
-                                ExpiryDate = detailInput.ExpiryDate,
-                                Quantity = detailInput.Quantity,
-                                UnitPrice = detailInput.UnitPrice,
-                                Remark = detailInput.Remark
-                            };
-                            await _consumableInboundDetailRepository.AddAsync(detail);
+                            Id = Guid.NewGuid().ToString(),
+                            InboundId = inbound.Id,
+                            MedicalItemId = detailInput.MedicalItemId,
+                            BatchNo = detailInput.BatchNo,
+                            ExpiryDate = detailInput.ExpiryDate,
+                            Quantity = detailInput.Quantity,
+                            UnitPrice = detailInput.UnitPrice,
+                            Remark = detailInput.Remark
+                        };
+                        _consumableInboundDetailRepository.Insert(detail);
 
-                            // 更新库存
-                            await UpdateInventoryAsync(detailInput.MedicalItemId, input.TenantId, detailInput.BatchNo, detailInput.ExpiryDate, detailInput.Quantity, detailInput.UnitPrice);
-                        }
+                        // 更新库存
+                        await UpdateInventoryAsync(detailInput.MedicalItemId, input.TenantId, detailInput.BatchNo, detailInput.ExpiryDate, detailInput.Quantity, detailInput.UnitPrice);
                     }
+                }
 
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _unitOfWork.DisChanges();
+                throw;
             }
         }
 
@@ -184,7 +180,7 @@ namespace CDGService.WebAPI.DataCore
                     LastInboundDate = DateTime.Now,
                     CreateDate = DateTime.Now
                 };
-                await _consumableInventoryRepository.AddAsync(inventory);
+                _consumableInventoryRepository.Insert(inventory);
             }
 
             // 检查库存预警
@@ -210,18 +206,18 @@ namespace CDGService.WebAPI.DataCore
                 if (existingWarning == null)
                 {
                     var warning = new ConsumableInventoryWarning
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        MedicalItemId = medicalItemId,
-                        TenantId = tenantId,
-                        WarningType = 1, // 库存不足
-                        WarningThreshold = warningThreshold,
-                        CurrentStock = inventory.StockQuantity,
-                        WarningMessage = $"耗材 {medicalItemId} 库存不足，当前库存 {inventory.StockQuantity}，预警阈值 {warningThreshold}",
-                        ProcessingStatus = 0, // 未处理
-                        CreateDate = DateTime.Now
-                    };
-                    await _consumableInventoryWarningRepository.AddAsync(warning);
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    MedicalItemId = medicalItemId,
+                    TenantId = tenantId,
+                    WarningType = 1, // 库存不足
+                    WarningThreshold = warningThreshold,
+                    CurrentStock = inventory.StockQuantity,
+                    WarningMessage = $"耗材 {medicalItemId} 库存不足，当前库存 {inventory.StockQuantity}，预警阈值 {warningThreshold}",
+                    ProcessingStatus = 0, // 未处理
+                    CreateDate = DateTime.Now
+                };
+                _consumableInventoryWarningRepository.Insert(warning);
                 }
             }
         }
@@ -237,7 +233,7 @@ namespace CDGService.WebAPI.DataCore
             foreach (var outbound in outbounds)
             {
                 var details = await _consumableOutboundDetailRepository.GetAllAsync(d => d.OutboundId == outbound.Id);
-                var tenant = await _tenantRepository.GetByIdAsync(outbound.TenantId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == outbound.TenantId);
 
                 var outboundOutput = new ConsumableOutboundOutput
                 {
@@ -257,7 +253,7 @@ namespace CDGService.WebAPI.DataCore
 
                 foreach (var detail in details)
                 {
-                    var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(detail.MedicalItemId);
+                    var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == detail.MedicalItemId);
                     outboundOutput.Details.Add(new ConsumableOutboundDetailOutput
                     {
                         Id = detail.Id,
@@ -267,7 +263,7 @@ namespace CDGService.WebAPI.DataCore
                         Specifications = medicalItem?.Specifications,
                         BatchNo = detail.BatchNo,
                         Quantity = detail.Quantity,
-                        Unit = medicalItem?.Unit,
+                        Unit = medicalItem?.PackageUnit,
                         Remark = detail.Remark
                     });
                 }
@@ -283,54 +279,50 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddOutboundAsync(ConsumableOutboundInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                var outbound = new ConsumableOutbound
                 {
-                    var outbound = new ConsumableOutbound
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        OutboundNo = input.OutboundNo,
-                        TenantId = input.TenantId,
-                        DepartmentId = input.DepartmentId,
-                        OutboundDate = input.OutboundDate,
-                        Operator = input.Operator,
-                        Remark = input.Remark,
-                        Creator = input.Creator,
-                        CreateDate = DateTime.Now
-                    };
+                    Id = Guid.NewGuid().ToString(),
+                    OutboundNo = input.OutboundNo,
+                    TenantId = input.TenantId,
+                    DepartmentId = input.DepartmentId,
+                    OutboundDate = input.OutboundDate,
+                    Operator = input.Operator,
+                    Remark = input.Remark,
+                    Creator = input.Creator,
+                    CreateDate = DateTime.Now
+                };
 
-                    await _consumableOutboundRepository.AddAsync(outbound);
+                _consumableOutboundRepository.Insert(outbound);
 
-                    if (input.Details != null && input.Details.Count > 0)
+                if (input.Details != null && input.Details.Count > 0)
+                {
+                    foreach (var detailInput in input.Details)
                     {
-                        foreach (var detailInput in input.Details)
+                        var detail = new ConsumableOutboundDetail
                         {
-                            var detail = new ConsumableOutboundDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                OutboundId = outbound.Id,
-                                MedicalItemId = detailInput.MedicalItemId,
-                                BatchNo = detailInput.BatchNo,
-                                Quantity = detailInput.Quantity,
-                                Remark = detailInput.Remark
-                            };
-                            await _consumableOutboundDetailRepository.AddAsync(detail);
+                            Id = Guid.NewGuid().ToString(),
+                            OutboundId = outbound.Id,
+                            MedicalItemId = detailInput.MedicalItemId,
+                            BatchNo = detailInput.BatchNo,
+                            Quantity = detailInput.Quantity,
+                            Remark = detailInput.Remark
+                        };
+                        _consumableOutboundDetailRepository.Insert(detail);
 
-                            // 扣减库存
-                            await DeductInventoryAsync(detailInput.MedicalItemId, input.TenantId, detailInput.BatchNo, detailInput.Quantity);
-                        }
+                        // 扣减库存
+                        await DeductInventoryAsync(detailInput.MedicalItemId, input.TenantId, detailInput.BatchNo, detailInput.Quantity);
                     }
+                }
 
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _unitOfWork.DisChanges();
+                throw;
             }
         }
 
@@ -364,8 +356,8 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var warning in warnings)
             {
-                var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(warning.MedicalItemId);
-                var tenant = await _tenantRepository.GetByIdAsync(warning.TenantId);
+                var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == warning.MedicalItemId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == warning.TenantId);
 
                 var warningOutput = new ConsumableInventoryWarningOutput
                 {
@@ -400,7 +392,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> HandleInventoryWarningAsync(string id, int processingStatus, string handler, string processingResult)
         {
-            var warning = await _consumableInventoryWarningRepository.GetByIdAsync(id);
+            var warning = await _consumableInventoryWarningRepository.GetFirstOrDefaultAsync(w => w.Id == id);
             if (warning == null) return false;
 
             warning.ProcessingStatus = processingStatus;
@@ -425,10 +417,10 @@ namespace CDGService.WebAPI.DataCore
             var result = new List<ConsumableInventoryOutput>();
             foreach (var inventory in inventories)
             {
-                var medicalItem = await _medicalItemRecordRepository.GetByIdAsync(inventory.MedicalItemId);
-                var tenant = await _tenantRepository.GetByIdAsync(inventory.TenantId);
+                var medicalItem = await _medicalItemRecordRepository.GetFirstOrDefaultAsync(m => m.Id == inventory.MedicalItemId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == inventory.TenantId);
 
-                if (!string.IsNullOrEmpty(input.ConsumableName) && !medicalItem?.MedicalItemName.Contains(input.ConsumableName) ?? false)
+                if (!string.IsNullOrEmpty(input.ConsumableName) && (medicalItem == null || !medicalItem.MedicalItemName.Contains(input.ConsumableName)))
                 {
                     continue;
                 }
@@ -447,7 +439,7 @@ namespace CDGService.WebAPI.DataCore
                     BatchNo = inventory.BatchNo,
                     ExpiryDate = inventory.ExpiryDate,
                     StockQuantity = inventory.StockQuantity,
-                    Unit = medicalItem?.Unit,
+                    Unit = medicalItem?.PackageUnit,
                     UnitPrice = inventory.UnitPrice,
                     TenantId = inventory.TenantId,
                     TenantName = tenant?.TenantName,

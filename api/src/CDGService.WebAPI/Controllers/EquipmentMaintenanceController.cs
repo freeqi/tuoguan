@@ -197,7 +197,7 @@ namespace CDGService.WebAPI.Controllers
         /// 审批设备维保延长申请
         /// </summary>
         [HttpPut("extensions/{id}/approve")]
-        public async Task<ActionResult<bool>> ApproveMaintenanceExtension(string id, [FromBody] ApproveRequest approveRequest)
+        public async Task<ActionResult<bool>> ApproveMaintenanceExtension(string id, [FromBody] MaintenanceApproveRequest approveRequest)
         {
             try
             {
@@ -236,9 +236,9 @@ namespace CDGService.WebAPI.Controllers
         }
 
         /// <summary>
-        /// 审批请求
+        /// 维保审批请求
         /// </summary>
-        public class ApproveRequest
+        public class MaintenanceApproveRequest
         {
             public int Status { get; set; }
             public string Approver { get; set; }

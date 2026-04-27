@@ -1,5 +1,5 @@
 using CDGService.Data.Datas;
-using CDGService.Store.IRepository;
+using CDGService.Data.Store;
 using CDGService.WebAPI.Dto;
 using System;
 using System.Collections.Generic;
@@ -79,14 +79,15 @@ namespace CDGService.WebAPI.DataCore
         private async Task<EquipmentStatisticsDto> GetEquipmentStatisticsAsync()
         {
             var equipmentList = await _equipmentInfoRepository.GetAllAsync();
+            var equipmentListCount = equipmentList.Count();
 
             var statistics = new EquipmentStatisticsDto
             {
-                TotalCount = equipmentList.Count,
-                RunningCount = equipmentList.Count(e => e.EquipmentStatus == 1), // 运行中
-                IdleCount = equipmentList.Count(e => e.EquipmentStatus == 2), // 待机
-                FaultCount = equipmentList.Count(e => e.EquipmentStatus == 3), // 故障
-                MaintenanceCount = equipmentList.Count(e => e.EquipmentStatus == 4) // 维护中
+                TotalCount = equipmentListCount,
+                RunningCount = equipmentList.Count(e => e.EquipmentState == "1"), // 运行中
+                IdleCount = equipmentList.Count(e => e.EquipmentState == "2"), // 待机
+                FaultCount = equipmentList.Count(e => e.EquipmentState == "3"), // 故障
+                MaintenanceCount = equipmentList.Count(e => e.EquipmentState == "4") // 维护中
             };
 
             return statistics;
@@ -108,7 +109,7 @@ namespace CDGService.WebAPI.DataCore
 
             var statistics = new ConsumableStatisticsDto
             {
-                TotalTypes = medicalItems.Count,
+                TotalTypes = medicalItems.Count(),
                 TotalStock = inventoryList.Sum(i => i.StockQuantity),
                 WarningCount = warningList.Count(w => w.ProcessingStatus == 0),
                 MonthInbound = inboundDetails.Sum(d => d.Quantity),
@@ -123,8 +124,9 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         private async Task<FaultStatisticsDto> GetFaultStatisticsAsync()
         {
-            var faultList = await _equipmentFaultRecordRepository.GetAllAsync(f => f.FaultOccurTime >= DateTime.Now.AddMonths(-1));
-            var resolvedCount = faultList.Count(f => f.ProcessingStatus == 2); // 已解决
+            var faultList = await _equipmentFaultRecordRepository.GetAllAsync(f => f.FaultTime >= DateTime.Now.AddMonths(-1));
+            var faultListCount = faultList.Count();
+            var resolvedCount = faultList.Count(f => f.Status == 2); // 已解决
 
             var faultTypeDistribution = faultList
                 .GroupBy(f => f.FaultType)
@@ -132,15 +134,15 @@ namespace CDGService.WebAPI.DataCore
                 {
                     FaultType = g.Key,
                     Count = g.Count(),
-                    Percentage = faultList.Count > 0 ? Math.Round((decimal)g.Count() / faultList.Count * 100, 2) : 0
+                    Percentage = faultListCount > 0 ? Math.Round((decimal)g.Count() / faultListCount * 100, 2) : 0
                 })
                 .ToList();
 
             var statistics = new FaultStatisticsDto
             {
-                MonthFaultCount = faultList.Count,
+                MonthFaultCount = faultListCount,
                 MonthResolvedCount = resolvedCount,
-                ResolutionRate = faultList.Count > 0 ? Math.Round((decimal)resolvedCount / faultList.Count * 100, 2) : 0,
+                ResolutionRate = faultListCount > 0 ? Math.Round((decimal)resolvedCount / faultListCount * 100, 2) : 0,
                 FaultTypeDistribution = faultTypeDistribution
             };
 
@@ -166,7 +168,7 @@ namespace CDGService.WebAPI.DataCore
                         Id = w.Id,
                         ConsumableName = medicalItem?.MedicalItemName ?? "",
                         Specifications = medicalItem?.Specifications ?? "",
-                        WarningType = w.WarningType,
+                        WarningType = w.WarningType.ToString(),
                         CurrentStock = inventory?.StockQuantity ?? 0,
                         WarningThreshold = 10, // 示例预警阈值
                         CreateDate = w.CreateDate
@@ -187,18 +189,18 @@ namespace CDGService.WebAPI.DataCore
             var equipmentList = await _equipmentInfoRepository.GetAllAsync();
 
             var recentFaults = faultList
-                .OrderByDescending(f => f.FaultOccurTime)
+                .OrderByDescending(f => f.FaultTime)
                 .Select(f => {
                     var equipment = equipmentList.FirstOrDefault(e => e.Id == f.EquipmentId);
 
                     return new RecentFaultDto
                     {
                         Id = f.Id,
-                        EquipmentName = equipment?.EquipmentName ?? "",
+                        EquipmentName = equipment?.Name ?? "",
                         FaultType = f.FaultType,
                         FaultDescription = f.FaultDescription,
-                        FaultOccurTime = f.FaultOccurTime,
-                        Status = f.ProcessingStatus == 0 ? "待处理" : f.ProcessingStatus == 1 ? "处理中" : "已解决"
+                        FaultOccurTime = f.FaultTime,
+                        Status = f.Status == 0 ? "待处理" : f.Status == 1 ? "处理中" : "已解决"
                     };
                 })
                 .Take(5)

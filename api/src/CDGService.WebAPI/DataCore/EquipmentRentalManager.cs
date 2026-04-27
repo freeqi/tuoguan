@@ -44,7 +44,7 @@ namespace CDGService.WebAPI.DataCore
             foreach (var rental in rentals)
             {
                 var details = await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == rental.Id);
-                var tenant = await _tenantRepository.GetByIdAsync(rental.TenantId);
+                var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == rental.TenantId);
 
                 var rentalOutput = new EquipmentRentalOutput
                 {
@@ -71,7 +71,7 @@ namespace CDGService.WebAPI.DataCore
 
                 foreach (var detail in details)
                 {
-                    var equipment = await _equipmentInfoRepository.GetByIdAsync(detail.EquipmentId);
+                    var equipment = await _equipmentInfoRepository.GetFirstOrDefaultAsync(e => e.Id == detail.EquipmentId);
                     rentalOutput.Details.Add(new EquipmentRentalDetailOutput
                     {
                         Id = detail.Id,
@@ -95,11 +95,11 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentRentalOutput> GetEquipmentRentalByIdAsync(string id)
         {
-            var rental = await _equipmentRentalRepository.GetByIdAsync(id);
+            var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (rental == null) return null;
 
             var details = await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == id);
-            var tenant = await _tenantRepository.GetByIdAsync(rental.TenantId);
+            var tenant = await _tenantRepository.GetFirstOrDefaultAsync(t => t.Id == rental.TenantId);
 
             var result = new EquipmentRentalOutput
             {
@@ -126,7 +126,7 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var detail in details)
             {
-                var equipment = await _equipmentInfoRepository.GetByIdAsync(detail.EquipmentId);
+                var equipment = await _equipmentInfoRepository.GetFirstOrDefaultAsync(e => e.Id == detail.EquipmentId);
                 result.Details.Add(new EquipmentRentalDetailOutput
                 {
                     Id = detail.Id,
@@ -147,57 +147,53 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> AddEquipmentRentalAsync(EquipmentRentalInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                var rental = new EquipmentRental
                 {
-                    var rental = new EquipmentRental
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        TenantId = input.TenantId,
-                        RentalNo = input.RentalNo,
-                        ContactPerson = input.ContactPerson,
-                        ContactPhone = input.ContactPhone,
-                        DeliveryAddress = input.DeliveryAddress,
-                        RentalDate = input.RentalDate,
-                        EstimatedReturnDate = input.EstimatedReturnDate,
-                        ActualReturnDate = input.ActualReturnDate,
-                        Status = input.Status,
-                        Remark = input.Remark,
-                        Applicant = input.Applicant,
-                        Approver = input.Approver,
-                        ApprovalDate = input.ApprovalDate,
-                        Creator = input.Creator,
-                        CreateDate = DateTime.Now
-                    };
+                    Id = Guid.NewGuid().ToString(),
+                    TenantId = input.TenantId,
+                    RentalNo = input.RentalNo,
+                    ContactPerson = input.ContactPerson,
+                    ContactPhone = input.ContactPhone,
+                    DeliveryAddress = input.DeliveryAddress,
+                    RentalDate = input.RentalDate,
+                    EstimatedReturnDate = input.EstimatedReturnDate,
+                    ActualReturnDate = input.ActualReturnDate,
+                    Status = input.Status,
+                    Remark = input.Remark,
+                    Applicant = input.Applicant,
+                    Approver = input.Approver,
+                    ApprovalDate = input.ApprovalDate,
+                    Creator = input.Creator,
+                    CreateDate = DateTime.Now
+                };
 
-                    await _equipmentRentalRepository.AddAsync(rental);
+                _equipmentRentalRepository.Insert(rental);
 
-                    if (input.Details != null && input.Details.Count > 0)
+                if (input.Details != null && input.Details.Count > 0)
+                {
+                    foreach (var detailInput in input.Details)
                     {
-                        foreach (var detailInput in input.Details)
+                        var detail = new EquipmentRentalDetail
                         {
-                            var detail = new EquipmentRentalDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                RentalId = rental.Id,
-                                EquipmentId = detailInput.EquipmentId,
-                                Quantity = detailInput.Quantity,
-                                Remark = detailInput.Remark
-                            };
-                            await _equipmentRentalDetailRepository.AddAsync(detail);
-                        }
+                            Id = Guid.NewGuid().ToString(),
+                            RentalId = rental.Id,
+                            EquipmentId = detailInput.EquipmentId,
+                            Quantity = detailInput.Quantity,
+                            Remark = detailInput.Remark
+                        };
+                        _equipmentRentalDetailRepository.Insert(detail);
                     }
+                }
 
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _unitOfWork.DisChanges();
+                throw;
             }
         }
 
@@ -206,62 +202,58 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateEquipmentRentalAsync(EquipmentRentalInput input)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == input.Id);
+                if (rental == null) return false;
+
+                rental.TenantId = input.TenantId;
+                rental.RentalNo = input.RentalNo;
+                rental.ContactPerson = input.ContactPerson;
+                rental.ContactPhone = input.ContactPhone;
+                rental.DeliveryAddress = input.DeliveryAddress;
+                rental.RentalDate = input.RentalDate;
+                rental.EstimatedReturnDate = input.EstimatedReturnDate;
+                rental.ActualReturnDate = input.ActualReturnDate;
+                rental.Status = input.Status;
+                rental.Remark = input.Remark;
+                rental.Applicant = input.Applicant;
+                rental.Approver = input.Approver;
+                rental.ApprovalDate = input.ApprovalDate;
+
+                _equipmentRentalRepository.Update(rental);
+
+                // 删除旧的详情
+                var oldDetails = await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == input.Id);
+                foreach (var oldDetail in oldDetails)
                 {
-                    var rental = await _equipmentRentalRepository.GetByIdAsync(input.Id);
-                    if (rental == null) return false;
+                    _equipmentRentalDetailRepository.Remove(oldDetail);
+                }
 
-                    rental.TenantId = input.TenantId;
-                    rental.RentalNo = input.RentalNo;
-                    rental.ContactPerson = input.ContactPerson;
-                    rental.ContactPhone = input.ContactPhone;
-                    rental.DeliveryAddress = input.DeliveryAddress;
-                    rental.RentalDate = input.RentalDate;
-                    rental.EstimatedReturnDate = input.EstimatedReturnDate;
-                    rental.ActualReturnDate = input.ActualReturnDate;
-                    rental.Status = input.Status;
-                    rental.Remark = input.Remark;
-                    rental.Applicant = input.Applicant;
-                    rental.Approver = input.Approver;
-                    rental.ApprovalDate = input.ApprovalDate;
-
-                    _equipmentRentalRepository.Update(rental);
-
-                    // 删除旧的详情
-                    var oldDetails = await _equipmentRentalDetailRepository.GetAllAsync(d => d.RentalId == input.Id);
-                    foreach (var oldDetail in oldDetails)
+                // 添加新的详情
+                if (input.Details != null && input.Details.Count > 0)
+                {
+                    foreach (var detailInput in input.Details)
                     {
-                        _equipmentRentalDetailRepository.Delete(oldDetail);
-                    }
-
-                    // 添加新的详情
-                    if (input.Details != null && input.Details.Count > 0)
-                    {
-                        foreach (var detailInput in input.Details)
+                        var detail = new EquipmentRentalDetail
                         {
-                            var detail = new EquipmentRentalDetail
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                RentalId = rental.Id,
-                                EquipmentId = detailInput.EquipmentId,
-                                Quantity = detailInput.Quantity,
-                                Remark = detailInput.Remark
-                            };
-                            await _equipmentRentalDetailRepository.AddAsync(detail);
-                        }
+                            Id = Guid.NewGuid().ToString(),
+                            RentalId = rental.Id,
+                            EquipmentId = detailInput.EquipmentId,
+                            Quantity = detailInput.Quantity,
+                            Remark = detailInput.Remark
+                        };
+                        _equipmentRentalDetailRepository.Insert(detail);
                     }
+                }
 
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _unitOfWork.DisChanges();
+                throw;
             }
         }
 
@@ -270,7 +262,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> ApproveEquipmentRentalAsync(string id, int status, string approver)
         {
-            var rental = await _equipmentRentalRepository.GetByIdAsync(id);
+            var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (rental == null) return false;
 
             rental.Status = status;
@@ -286,7 +278,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> ReturnEquipmentAsync(string id, DateTime actualReturnDate)
         {
-            var rental = await _equipmentRentalRepository.GetByIdAsync(id);
+            var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == id);
             if (rental == null) return false;
 
             rental.Status = 3; // 已归还
@@ -315,7 +307,7 @@ namespace CDGService.WebAPI.DataCore
                 CreateDate = DateTime.Now
             };
 
-            await _equipmentRentalExtensionRepository.AddAsync(extension);
+            _equipmentRentalExtensionRepository.Insert(extension);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -324,39 +316,35 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> ApproveEquipmentRentalExtensionAsync(string id, int status, string approver)
         {
-            var extension = await _equipmentRentalExtensionRepository.GetByIdAsync(id);
+            var extension = await _equipmentRentalExtensionRepository.GetFirstOrDefaultAsync(e => e.Id == id);
             if (extension == null) return false;
 
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                extension.Status = status;
+                extension.Approver = approver;
+                extension.ApprovalDate = DateTime.Now;
+
+                _equipmentRentalExtensionRepository.Update(extension);
+
+                // 如果审批通过，更新租用的预计归还日期
+                if (status == 1)
                 {
-                    extension.Status = status;
-                    extension.Approver = approver;
-                    extension.ApprovalDate = DateTime.Now;
-
-                    _equipmentRentalExtensionRepository.Update(extension);
-
-                    // 如果审批通过，更新租用的预计归还日期
-                    if (status == 1)
+                    var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == extension.RentalId);
+                    if (rental != null)
                     {
-                        var rental = await _equipmentRentalRepository.GetByIdAsync(extension.RentalId);
-                        if (rental != null)
-                        {
-                            rental.EstimatedReturnDate = extension.NewReturnDate;
-                            _equipmentRentalRepository.Update(rental);
-                        }
+                        rental.EstimatedReturnDate = extension.NewReturnDate;
+                        _equipmentRentalRepository.Update(rental);
                     }
+                }
 
-                    await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _unitOfWork.DisChanges();
+                throw;
             }
         }
 
@@ -370,7 +358,7 @@ namespace CDGService.WebAPI.DataCore
 
             foreach (var extension in extensions)
             {
-                var rental = await _equipmentRentalRepository.GetByIdAsync(extension.RentalId);
+                var rental = await _equipmentRentalRepository.GetFirstOrDefaultAsync(r => r.Id == extension.RentalId);
                 result.Add(new EquipmentRentalExtensionOutput
                 {
                     Id = extension.Id,

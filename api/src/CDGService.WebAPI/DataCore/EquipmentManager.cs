@@ -1,4 +1,4 @@
-﻿﻿﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Datas;
@@ -276,7 +276,7 @@ namespace CDGService.WebAPI.DataCore
         {
             equipment.Id = Guid.NewGuid().ToString();
             equipment.FounderDate = DateTime.Now;
-            await EquipmentStore.AddAsync(equipment);
+            EquipmentStore.Insert(equipment);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -285,7 +285,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> UpdateEquipmentAsync(EquipmentInfo equipment)
         {
-            var existingEquipment = await EquipmentStore.GetByIdAsync(equipment.Id);
+            var existingEquipment = await EquipmentStore.GetFirstOrDefaultAsync(e => e.Id == equipment.Id);
             if (existingEquipment == null) return false;
 
             existingEquipment.Name = equipment.Name;
@@ -322,7 +322,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<bool> DeleteEquipmentAsync(string id)
         {
-            var equipment = await EquipmentStore.GetByIdAsync(id);
+            var equipment = await EquipmentStore.GetFirstOrDefaultAsync(e => e.Id == id);
             if (equipment == null) return false;
 
             equipment.IsDelete = true;
@@ -335,7 +335,7 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<EquipmentInfo> GetEquipmentByIdAsync(string id)
         {
-            return await EquipmentStore.GetByIdAsync(id);
+            return await EquipmentStore.GetFirstOrDefaultAsync(e => e.Id == id);
         }
 
         /// <summary>
@@ -343,7 +343,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentType>> GetEquipmentTypesAsync()
         {
-            return await EquipmentTypeStore.GetAllAsync();
+            var result = await EquipmentTypeStore.GetAllAsync();
+            return result.ToList();
         }
 
         /// <summary>
@@ -351,7 +352,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentSupplier>> GetEquipmentSuppliersAsync()
         {
-            return await EquipmentSupplierStore.GetAllAsync();
+            var result = await EquipmentSupplierStore.GetAllAsync();
+            return result.ToList();
         }
 
         /// <summary>
@@ -359,7 +361,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentManufacturers>> GetEquipmentManufacturersAsync()
         {
-            return await EquipmentManufacturersStore.GetAllAsync();
+            var result = await EquipmentManufacturersStore.GetAllAsync();
+            return result.ToList();
         }
 
         /// <summary>
@@ -367,7 +370,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentModel>> GetEquipmentModelsAsync()
         {
-            return await EquipmentModelStore.GetAllAsync();
+            var result = await EquipmentModelStore.GetAllAsync();
+            return result.ToList();
         }
 
         /// <summary>
@@ -375,7 +379,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentModel>> GetEquipmentModelsByTypeIdAsync(string typeId)
         {
-            return await EquipmentModelStore.GetAllAsync(m => m.TypeId == typeId);
+            var result = await EquipmentModelStore.GetAllAsync(m => m.TypeId == typeId);
+            return result.ToList();
         }
 
         /// <summary>
@@ -383,7 +388,8 @@ namespace CDGService.WebAPI.DataCore
         /// </summary>
         public async Task<List<EquipmentModel>> GetEquipmentModelsByManufacturerIdAsync(string manufacturerId)
         {
-            return await EquipmentModelStore.GetAllAsync(m => m.ManufacturersId == manufacturerId);
+            var result = await EquipmentModelStore.GetAllAsync(m => m.ManufacturersId == manufacturerId);
+            return result.ToList();
         }
 
     }

@@ -325,5 +325,43 @@ namespace CDGService.Store
 
         public DbSet<MaterialsWarningApplyList> MaterialsWarningApplyList { get; set; }
         public DbSet<MaterialsWarningApplyDetailList> MaterialsWarningApplyDetailList { get; set; }
+
+        // 租户管理
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<UserTenant> UserTenants { get; set; }
+
+        // 设备租用
+        public DbSet<EquipmentRental> EquipmentRentals { get; set; }
+        public DbSet<EquipmentRentalDetail> EquipmentRentalDetails { get; set; }
+        public DbSet<EquipmentRentalExtension> EquipmentRentalExtensions { get; set; }
+
+        // 设备维保
+        public DbSet<EquipmentMaintenance> EquipmentMaintenances { get; set; }
+        public DbSet<EquipmentMaintenanceDetail> EquipmentMaintenanceDetails { get; set; }
+        public DbSet<EquipmentMaintenanceExtension> EquipmentMaintenanceExtensions { get; set; }
+
+        // 设备报废、退租、巡检
+        public DbSet<EquipmentScrap> EquipmentScraps { get; set; }
+        public DbSet<EquipmentReturn> EquipmentReturns { get; set; }
+        public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
+
+        // 设备运行监控
+        public DbSet<EquipmentMonitoring> EquipmentMonitorings { get; set; }
+        public DbSet<EquipmentFaultWarning> EquipmentFaultWarnings { get; set; }
+        public DbSet<EquipmentFaultRecord> EquipmentFaultRecords { get; set; }
+
+        // 耗材管理
+        public DbSet<EquipmentConsumableTemplate> EquipmentConsumableTemplates { get; set; }
+        public DbSet<EquipmentConsumableTemplateDetail> EquipmentConsumableTemplateDetails { get; set; }
+        public DbSet<ConsumablePurchaseRequest> ConsumablePurchaseRequests { get; set; }
+        public DbSet<ConsumablePurchaseRequestDetail> ConsumablePurchaseRequestDetails { get; set; }
+
+        // 库存管理
+        public DbSet<ConsumableInbound> ConsumableInbounds { get; set; }
+        public DbSet<ConsumableInboundDetail> ConsumableInboundDetails { get; set; }
+        public DbSet<ConsumableOutbound> ConsumableOutbounds { get; set; }
+        public DbSet<ConsumableOutboundDetail> ConsumableOutboundDetails { get; set; }
+        public DbSet<ConsumableInventory> ConsumableInventories { get; set; }
+        public DbSet<ConsumableInventoryWarning> ConsumableInventoryWarnings { get; set; }
     }
 }

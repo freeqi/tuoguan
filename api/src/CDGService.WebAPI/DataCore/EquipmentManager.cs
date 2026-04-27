@@ -35,7 +35,10 @@ namespace CDGService.WebAPI.DataCore
         }
         private IRepository<EquipmentInfo> EquipmentStore => _unitOfWork.GetStore<EquipmentInfo>();
         private IRepository<SystemDictionary> DictionaryStore => _unitOfWork.GetStore<SystemDictionary>();
-
+        private IRepository<EquipmentType> EquipmentTypeStore => _unitOfWork.GetStore<EquipmentType>();
+        private IRepository<EquipmentSupplier> EquipmentSupplierStore => _unitOfWork.GetStore<EquipmentSupplier>();
+        private IRepository<EquipmentModel> EquipmentModelStore => _unitOfWork.GetStore<EquipmentModel>();
+        private IRepository<EquipmentManufacturers> EquipmentManufacturersStore => _unitOfWork.GetStore<EquipmentManufacturers>();
         private IRepository<CenterDialysis> CenterDialysisStore => _unitOfWork.GetStore<CenterDialysis>();
         /// <summary>
         /// 设备列表
@@ -264,6 +267,123 @@ namespace CDGService.WebAPI.DataCore
                 return result.ToArray();
             });
 
+        }
+
+        /// <summary>
+        /// 添加设备
+        /// </summary>
+        public async Task<bool> AddEquipmentAsync(EquipmentInfo equipment)
+        {
+            equipment.Id = Guid.NewGuid().ToString();
+            equipment.FounderDate = DateTime.Now;
+            await EquipmentStore.AddAsync(equipment);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// 更新设备
+        /// </summary>
+        public async Task<bool> UpdateEquipmentAsync(EquipmentInfo equipment)
+        {
+            var existingEquipment = await EquipmentStore.GetByIdAsync(equipment.Id);
+            if (existingEquipment == null) return false;
+
+            existingEquipment.Name = equipment.Name;
+            existingEquipment.EquipType = equipment.EquipType;
+            existingEquipment.Model = equipment.Model;
+            existingEquipment.CenterId = equipment.CenterId;
+            existingEquipment.SerialNumber = equipment.SerialNumber;
+            existingEquipment.TreatmentRegion = equipment.TreatmentRegion;
+            existingEquipment.EquipmentState = equipment.EquipmentState;
+            existingEquipment.IPAddress = equipment.IPAddress;
+            existingEquipment.BedNo = equipment.BedNo;
+            existingEquipment.BloodBorneDisease = equipment.BloodBorneDisease;
+            existingEquipment.TreatmentModels = equipment.TreatmentModels;
+            existingEquipment.EngineerName = equipment.EngineerName;
+            existingEquipment.EngineerPhone = equipment.EngineerPhone;
+            existingEquipment.PurchaseDate = equipment.PurchaseDate;
+            existingEquipment.Supplier = equipment.Supplier;
+            existingEquipment.SupplierTelphone = equipment.SupplierTelphone;
+            existingEquipment.PurchaseMoney = equipment.PurchaseMoney;
+            existingEquipment.Producer = equipment.Producer;
+            existingEquipment.ProducerTelphone = equipment.ProducerTelphone;
+            existingEquipment.ProduceDate = equipment.ProduceDate;
+            existingEquipment.MaintenanceDate = equipment.MaintenanceDate;
+            existingEquipment.DataState = equipment.DataState;
+            existingEquipment.Modifier = equipment.Modifier;
+            existingEquipment.ModifierDate = DateTime.Now;
+
+            EquipmentStore.Update(existingEquipment);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// 删除设备
+        /// </summary>
+        public async Task<bool> DeleteEquipmentAsync(string id)
+        {
+            var equipment = await EquipmentStore.GetByIdAsync(id);
+            if (equipment == null) return false;
+
+            equipment.IsDelete = true;
+            EquipmentStore.Update(equipment);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// 根据ID获取设备
+        /// </summary>
+        public async Task<EquipmentInfo> GetEquipmentByIdAsync(string id)
+        {
+            return await EquipmentStore.GetByIdAsync(id);
+        }
+
+        /// <summary>
+        /// 获取设备类型列表
+        /// </summary>
+        public async Task<List<EquipmentType>> GetEquipmentTypesAsync()
+        {
+            return await EquipmentTypeStore.GetAllAsync();
+        }
+
+        /// <summary>
+        /// 获取设备供应商列表
+        /// </summary>
+        public async Task<List<EquipmentSupplier>> GetEquipmentSuppliersAsync()
+        {
+            return await EquipmentSupplierStore.GetAllAsync();
+        }
+
+        /// <summary>
+        /// 获取设备制造商列表
+        /// </summary>
+        public async Task<List<EquipmentManufacturers>> GetEquipmentManufacturersAsync()
+        {
+            return await EquipmentManufacturersStore.GetAllAsync();
+        }
+
+        /// <summary>
+        /// 获取设备型号列表
+        /// </summary>
+        public async Task<List<EquipmentModel>> GetEquipmentModelsAsync()
+        {
+            return await EquipmentModelStore.GetAllAsync();
+        }
+
+        /// <summary>
+        /// 根据设备类型获取设备型号列表
+        /// </summary>
+        public async Task<List<EquipmentModel>> GetEquipmentModelsByTypeIdAsync(string typeId)
+        {
+            return await EquipmentModelStore.GetAllAsync(m => m.TypeId == typeId);
+        }
+
+        /// <summary>
+        /// 根据制造商获取设备型号列表
+        /// </summary>
+        public async Task<List<EquipmentModel>> GetEquipmentModelsByManufacturerIdAsync(string manufacturerId)
+        {
+            return await EquipmentModelStore.GetAllAsync(m => m.ManufacturersId == manufacturerId);
         }
 
     }

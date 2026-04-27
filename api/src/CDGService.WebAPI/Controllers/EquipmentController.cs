@@ -181,5 +181,157 @@ namespace CDGService.WebAPI.Controllers
 
         }
         #endregion
+
+        #region 设备管理
+        /// <summary>
+        /// 添加设备
+        /// </summary>
+        [HttpPost("AddEquipment")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<bool>> AddEquipmentAsync([FromBody] EquipmentInfo equipment)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.AddEquipmentAsync(equipment);
+                return new ServiceMessage<bool>(result);
+            });
+        }
+
+        /// <summary>
+        /// 更新设备
+        /// </summary>
+        [HttpPost("UpdateEquipment")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<bool>> UpdateEquipmentAsync([FromBody] EquipmentInfo equipment)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.UpdateEquipmentAsync(equipment);
+                return new ServiceMessage<bool>(result);
+            });
+        }
+
+        /// <summary>
+        /// 删除设备
+        /// </summary>
+        [HttpPost("DeleteEquipment")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<bool>> DeleteEquipmentAsync(string id)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.DeleteEquipmentAsync(id);
+                return new ServiceMessage<bool>(result);
+            });
+        }
+
+        /// <summary>
+        /// 根据ID获取设备
+        /// </summary>
+        [HttpGet("GetEquipmentById")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentInfo>> GetEquipmentByIdAsync(string id)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentByIdAsync(id);
+                return new ServiceMessage<EquipmentInfo>(result);
+            });
+        }
+
+        /// <summary>
+        /// 获取设备类型列表
+        /// </summary>
+        [HttpGet("GetEquipmentTypes")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentType[]>> GetEquipmentTypesAsync()
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentTypesAsync();
+                return new ServiceMessage<EquipmentType[]>(result.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// 获取设备供应商列表
+        /// </summary>
+        [HttpGet("GetEquipmentSuppliers")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentSupplier[]>> GetEquipmentSuppliersAsync()
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentSuppliersAsync();
+                return new ServiceMessage<EquipmentSupplier[]>(result.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// 获取设备制造商列表
+        /// </summary>
+        [HttpGet("GetEquipmentManufacturers")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentManufacturers[]>> GetEquipmentManufacturersAsync()
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentManufacturersAsync();
+                return new ServiceMessage<EquipmentManufacturers[]>(result.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// 获取设备型号列表
+        /// </summary>
+        [HttpGet("GetEquipmentModels")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentModel[]>> GetEquipmentModelsAsync()
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentModelsAsync();
+                return new ServiceMessage<EquipmentModel[]>(result.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// 根据设备类型获取设备型号列表
+        /// </summary>
+        [HttpGet("GetEquipmentModelsByTypeId")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentModel[]>> GetEquipmentModelsByTypeIdAsync(string typeId)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentModelsByTypeIdAsync(typeId);
+                return new ServiceMessage<EquipmentModel[]>(result.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// 根据制造商获取设备型号列表
+        /// </summary>
+        [HttpGet("GetEquipmentModelsByManufacturerId")]
+        [CheckLogin]
+        [ServiceMessageTryCatch]
+        public virtual Task<ServiceMessage<EquipmentModel[]>> GetEquipmentModelsByManufacturerIdAsync(string manufacturerId)
+        {
+            return Task.Run(async () =>
+            {
+                var result = await _equipmentManager.GetEquipmentModelsByManufacturerIdAsync(manufacturerId);
+                return new ServiceMessage<EquipmentModel[]>(result.ToArray());
+            });
+        }
+        #endregion
     }
 }

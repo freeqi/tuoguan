@@ -72,6 +72,36 @@ namespace CDGService.WebAPI.Extenstions
             builder.RegisterType<WaterFuelManager>().AsSelf();
 
             builder.RegisterType<InformationManager>().AsSelf();
+            
+            // 租户管理
+            builder.RegisterType<TenantManager>().AsSelf();
+            
+            // 设备租用管理
+            builder.RegisterType<EquipmentRentalManager>().AsSelf();
+            
+            // 耗材管理
+            builder.RegisterType<ConsumableManager>().AsSelf();
+            
+            // 设备耗材模板管理
+            builder.RegisterType<EquipmentConsumableTemplateManager>().AsSelf();
+            
+            // 设备维保管理
+            builder.RegisterType<EquipmentMaintenanceManager>().AsSelf();
+            
+            // 设备报废、退租、巡检管理
+            builder.RegisterType<EquipmentScrapManager>().AsSelf();
+            
+            // 设备运行监控管理
+            builder.RegisterType<EquipmentMonitoringManager>().AsSelf();
+            
+            // 库存管理
+            builder.RegisterType<InventoryManager>().AsSelf();
+            
+            // 仪表盘管理
+            builder.RegisterType<DashboardManager>().AsSelf();
+            
+            // 数据分析管理
+            builder.RegisterType<DataAnalysisManager>().AsSelf();
 
 
             //注入所有controller，并启用ServiceMessageTryCatchInterceptor

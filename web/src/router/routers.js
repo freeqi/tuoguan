@@ -179,6 +179,26 @@ export default [
           import('@/view/components/operation_management/equipment/equipment')
       },
       {
+        path: 'equipment_rental',
+        name: 'equipment_rental',
+        meta: {
+          icon: '_iconfont icon-shebeiguanli',
+          title: '设备租用管理'
+        },
+        component: () =>
+          import('@/view/components/operation_management/equipment-rental/equipment-rental')
+      },
+      {
+        path: 'consumable',
+        name: 'consumable',
+        meta: {
+          icon: '_iconfont icon-wuziguanli',
+          title: '耗材管理'
+        },
+        component: () =>
+          import('@/view/components/operation_management/consumable/consumable')
+      },
+      {
         path: 'purchase_requisition_form',
         name: 'purchase_requisition_form',
         meta: {
@@ -433,6 +453,16 @@ export default [
         },
         component: () =>
           import('@/view/components/system_management/user-manage/user-manage')
+      },
+      {
+        path: 'tenant_manage',
+        name: 'tenant_manage',
+        meta: {
+          icon: '_iconfont icon-jigou',
+          title: '租户管理'
+        },
+        component: () =>
+          import('@/view/components/system_management/tenant-manage/tenant-manage')
       },
       {
         path: 'role_permissions',

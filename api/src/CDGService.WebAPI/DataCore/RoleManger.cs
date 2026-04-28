@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Helper;
@@ -21,15 +21,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-       
-        public RoleManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo)
+        private readonly IMapper _mapper;
+
+        public RoleManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
-     
-
+            _mapper = mapper;
         }
         private IRepository<Role> RoleStore => _unitOfWork.GetStore<Role>();
 
@@ -68,7 +68,7 @@ namespace CDGService.WebAPI.DataCore
                     else
                     {
 
-                        data = Mapper.Map<Role>(input);
+                        data = _mapper.Map<Role>(input);
                         data.Id =Guid.NewGuid().tostring32(); 
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
@@ -111,7 +111,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input.RoleId + "" != "")
                         predicate = predicate.And(t => t.Id == input.RoleId); 
                     var datas = await RoleStore.Entities.Where(predicate).ToArrayAsync();
-                    result = Mapper.Map<RoleOutPut[]>(datas);
+                    result = _mapper.Map<RoleOutPut[]>(datas);
 
                 }
                 catch (Exception ex)

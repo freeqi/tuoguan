@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
 using CDGService.Data.Store;
@@ -23,13 +23,14 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-        public DictionaryTypeManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo)
+        private readonly IMapper _mapper;
+        public DictionaryTypeManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
-
+            _mapper = mapper;
         }
         private IRepository<DictionaryType> DictionaryTypeStore => _unitOfWork.GetStore<DictionaryType>();
 
@@ -68,7 +69,7 @@ namespace CDGService.WebAPI.DataCore
                     else
                     {
 
-                        data = Mapper.Map<DictionaryType>(input);
+                        data = _mapper.Map<DictionaryType>(input);
                         data.Id =Guid.NewGuid().tostring32();
                         data.Founder = userId;
                         data.FounderDate = DateTime.Now;
@@ -142,7 +143,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input.Id + "" != "")
                         predicate = predicate.And(t => t.Id == input.Id);
                     var datas = await DictionaryTypeStore.Entities.Where(predicate).ToArrayAsync();
-                    result = Mapper.Map<DictionaryTypeOutPut[]>(datas);
+                    result = _mapper.Map<DictionaryTypeOutPut[]>(datas);
 
                 }
                 catch (Exception ex)

@@ -47,7 +47,7 @@ namespace CDGService.WebAPI.DataCore
                         foreach (var item in inPut.itemDetails)
                         {
                             WaterFuel data = new WaterFuel();
-                            //data = Mapper.Map<WaterFuel>(inPut);
+                            //data = _mapper.Map<WaterFuel>(inPut);
                             data.CenterId = inPut.CenterId;
                             data.ItemType = (BusinessTypeEnum)Enum.Parse(typeof(BusinessTypeEnum), item.ItemType); //item.ItemType;
                             data.AmountPriec = item.AmountPriec;
@@ -73,7 +73,7 @@ namespace CDGService.WebAPI.DataCore
                             var temp = (BusinessTypeEnum)Enum.Parse(typeof(BusinessTypeEnum), item.ItemType);
                             datas.Where(t => t.ItemType == temp).FirstOrDefault().AmountPriec = item.AmountPriec;
                             //WaterFuel data = new WaterFuel();
-                            ////data = Mapper.Map<WaterFuel>(inPut);
+                            ////data = _mapper.Map<WaterFuel>(inPut);
                             //data.CenterId = inPut.CenterId;
                             //data.ItemType = item.ItemType;
                             //data.AmountPriec = item.AmountPriec;

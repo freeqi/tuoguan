@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using CDGService.Data;
 using CDGService.Data.Datas;
 using CDGService.Data.Enums;
@@ -26,13 +26,14 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly DictionaryCode _dictionaryCode;
-        public EmployeeManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode)
+        private readonly IMapper _mapper;
+        public EmployeeManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode, IMapper mapper)
         {
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _dictionaryCode = dictionaryCode.Value;
-
+            _mapper = mapper;
         }
         private IRepository<Employee> EmployeeStore => _unitOfWork.GetStore<Employee>();
         private IRepository<EmployeeTransfer> EmployeeTransferStore => _unitOfWork.GetStore<EmployeeTransfer>();
@@ -103,13 +104,13 @@ namespace CDGService.WebAPI.DataCore
                     {
                         var Sum = EmployeeStore.Entities.Include(t => t.CenterDialysis).Include(t => t.Sposition).Include(t => t.SJobTitle).Include(t => t.Sdepartment).Include(t => t.SEducation).Include(t => t.DicWorkingState).Where(predicate).OrderBy(t => t.WorkingState).ThenBy(t => t.CenterDialysisId).ThenByDescending(t => t.NationDoctCode);
                         var persons = await PaginatedList<Employee>.CreateAsync(Sum, input.PageNum, input.pageSize);
-                        result = Mapper.Map<EmployeeOutPut[]>(persons);
+                        result = _mapper.Map<EmployeeOutPut[]>(persons);
                         count = persons.Count;
                     }
                     else
                     {
                         var datas = await EmployeeStore.Entities.Include(t => t.CenterDialysis).Include(t => t.Sposition).Include(t => t.SJobTitle).Include(t => t.Sdepartment).Include(t => t.SEducation).Include(t => t.DicWorkingState).Where(predicate).OrderBy(t => t.WorkingState).ThenBy(t => t.CenterDialysisId).ThenByDescending(t=>t.NationDoctCode).ToArrayAsync();
-                        result = Mapper.Map<EmployeeOutPut[]>(datas);
+                        result = _mapper.Map<EmployeeOutPut[]>(datas);
                         count = result.Length;
 
                     }
@@ -267,7 +268,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     else
                     {
-                        data = Mapper.Map<Employee>(input);
+                        data = _mapper.Map<Employee>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.DataState = 1;
                         data.Founder = userId;
@@ -604,13 +605,13 @@ namespace CDGService.WebAPI.DataCore
                     {
                         var Sum = PerEmpTransferStore.Entities.Include(t => t.employee).Include(t => t.Center).Include(t => t.PosDic).Include(t => t.depDic).Include(t => t.OriginalCenter).Include(t => t.OriginalDep).Include(t => t.OriginalPosition).Where(predicate).OrderByDescending(t => t.TransferDate);
                         var persons = await PaginatedList<PerEmpTransfer>.CreateAsync(Sum, input.PageNum, input.pageSize);
-                        result = Mapper.Map<PerEmpTransferOutPut[]>(persons);
+                        result = _mapper.Map<PerEmpTransferOutPut[]>(persons);
                         count = Sum.Count();
                     }
                     else
                     {
                         var datas = await PerEmpTransferStore.Entities.Include(t => t.employee).Include(t => t.Center).Include(t => t.PosDic).Include(t => t.depDic).Include(t => t.OriginalCenter).Include(t => t.OriginalDep).Include(t => t.OriginalPosition).Where(predicate).OrderByDescending(t => t.TransferDate).ToArrayAsync();
-                        result = Mapper.Map<PerEmpTransferOutPut[]>(datas);
+                        result = _mapper.Map<PerEmpTransferOutPut[]>(datas);
                         count = result.Length;
 
                     }
@@ -660,7 +661,7 @@ namespace CDGService.WebAPI.DataCore
                     }
                     else
                     {
-                        data = Mapper.Map<PerEmpTransfer>(input);
+                        data = _mapper.Map<PerEmpTransfer>(input);
                         data.Id = Guid.NewGuid().tostring32();
                         data.OriginalCenterId = empData.CenterDialysisId;
                         data.OriginalDepId = empData.DepId;

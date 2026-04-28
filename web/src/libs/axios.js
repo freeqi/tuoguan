@@ -153,7 +153,7 @@ class HttpRequest {
   request (options = {}) {
     const instance = axios.create({
       timeout: TIMEOUT,
-      withCredentials: true,
+      withCredentials: false,
       baseURL: this.baseUrl
     })
     this.cancelToken = axios.CancelToken

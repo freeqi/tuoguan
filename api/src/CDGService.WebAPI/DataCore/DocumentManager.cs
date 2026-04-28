@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿﻿﻿using AutoMapper;
 using Castle.Core.Internal;
 using CDGService.Data;
 using CDGService.Data.Datas;
@@ -30,17 +30,18 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly DictionaryCode _dictionaryCode;
+        private readonly IMapper _mapper;
         /// <summary>
         /// 
         /// </summary>
-        public DocumentManager(IUnitOfWork unitOfWork, IOptions<Data.DocumentSetting> documentSetting, LogManager logManager, IGetUserInfo getUserInfo, EmployeeManger employeeManger, IOptions<DictionaryCode> dictionaryCode)
+        public DocumentManager(IUnitOfWork unitOfWork, IOptions<Data.DocumentSetting> documentSetting, LogManager logManager, IGetUserInfo getUserInfo, EmployeeManger employeeManger, IOptions<DictionaryCode> dictionaryCode, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _documentSetting = documentSetting.Value;
             _logManager = logManager;
             _getUserInfo = getUserInfo;
             _dictionaryCode = dictionaryCode.Value;
-
+            _mapper = mapper;
         }
 
         private IRepository<MedicalUnit> MedicalUnitStore => _unitOfWork.GetStore<MedicalUnit>();
@@ -66,7 +67,7 @@ namespace CDGService.WebAPI.DataCore
             return Task.Run(async () =>
             {
                 var userId = await _getUserInfo.GetCurrentUserIdAsync();
-                var data = Mapper.Map<Document>(input);
+                var data = _mapper.Map<Document>(input);
                 data.EntryTime = DateTime.Now;
                 data.LastModifyTime = data.EntryTime;
                 data.PublishPersonId = userId;
@@ -98,7 +99,7 @@ namespace CDGService.WebAPI.DataCore
                     if (input == null)
                     {
                         var datas = await DocumentStore.Entities.Include(t => t.user).ThenInclude(t => t.Employee).Where(predicate).ToArrayAsync();
-                        result = Mapper.Map<DocumentOutput[]>(datas);
+                        result = _mapper.Map<DocumentOutput[]>(datas);
                     }
                     else
                     {
@@ -115,17 +116,17 @@ namespace CDGService.WebAPI.DataCore
                         {
 
                             var persons = await PaginatedList<Document>.CreateAsync(datas, input.PageNum, input.PageSize);
-                            result = Mapper.Map<DocumentOutput[]>(persons);
+                            result = _mapper.Map<DocumentOutput[]>(persons);
                             count = datas.Count();
                         }
                         else
                         {
-                            result = Mapper.Map<DocumentOutput[]>(datas);
+                            result = _mapper.Map<DocumentOutput[]>(datas);
                             count = result.Length;
 
                         }
 
-                        // result = Mapper.Map<DocumentOutput[]>(datas);
+                        // result = _mapper.Map<DocumentOutput[]>(datas);
                     }
                     return new PageData<DocumentOutput[]>(result, count);
                 }
@@ -296,14 +297,14 @@ namespace CDGService.WebAPI.DataCore
 
                             table = ExcelHelper.ReadExcel(FilePath, 3);
                             var emp = TableToemp(table);
-                            //   var data = (Mapper.Map<Employee[]>(emp)).ToList();  
+                            //   var data = (_mapper.Map<Employee[]>(emp)).ToList();  
                             foreach (var item in emp)
                             {
                                 if (item.Name == "")
                                 {
                                     continue;
                                 }
-                                Employee employee = Mapper.Map<Employee>(item);
+                                Employee employee = _mapper.Map<Employee>(item);
                                 employee.Id = Guid.NewGuid().tostring32();
                                 employee.Founder = userId;
                                 employee.FounderDate = DateTime.Now;
@@ -421,7 +422,7 @@ namespace CDGService.WebAPI.DataCore
                                     continue;
                                 }
                                 string cenderid = Guid.NewGuid().tostring32();
-                                CenterDialysis Newcenter = Mapper.Map<CenterDialysis>(item);
+                                CenterDialysis Newcenter = _mapper.Map<CenterDialysis>(item);
                                 Newcenter.Id = cenderid;
                                 // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
                                 Newcenter.AddMan = userId;
@@ -1084,7 +1085,7 @@ namespace CDGService.WebAPI.DataCore
                         }
 
                         //  item.Id = Itemid;
-                        MedicalItemRecord NewItem = Mapper.Map<MedicalItemRecord>(item);
+                        MedicalItemRecord NewItem = _mapper.Map<MedicalItemRecord>(item);
                         // NewItem.Id = Itemid;
                         // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
 
@@ -1166,7 +1167,7 @@ namespace CDGService.WebAPI.DataCore
                         //            MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                         //        }
 
-                        //        MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                        //        MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                         //        medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                         //        medicalDrugExtension.DataState = 1;
                         //        medicalDrugExtension.IsCurrentUse = true;
@@ -1196,7 +1197,7 @@ namespace CDGService.WebAPI.DataCore
                             NewItem.PackageUnit = NewItem.ProcurementUnit = NewItem.SpecificationsUnit;
                             NewItem.Packaging = NewItem.ProcurementPackage = NewItem.Specifications;
                             MedicalItemRecordStore.Insert(NewItem);
-                            MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                            MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                             medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                             medicalDrugExtension.DataState = 1;
                             medicalDrugExtension.IsCurrentUse = true;
@@ -1252,7 +1253,7 @@ namespace CDGService.WebAPI.DataCore
                             }
                             string Itemid = Guid.NewGuid().tostring32();
                             // item.Id = Itemid;
-                            MedicalItemRecord NewItem = Mapper.Map<MedicalItemRecord>(item);
+                            MedicalItemRecord NewItem = _mapper.Map<MedicalItemRecord>(item);
                             // NewItem.Id = Itemid;
                             // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
                             NewItem.Founder = userId;
@@ -1405,7 +1406,7 @@ namespace CDGService.WebAPI.DataCore
                                         MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                                     }
 
-                                    MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                    MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                     medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                     medicalDrugExtension.DataState = 1;
                                     medicalDrugExtension.IsCurrentUse = true;
@@ -1432,7 +1433,7 @@ namespace CDGService.WebAPI.DataCore
                                 NewItem.Mnemonic = NewItem.Mnemonic == "" ? CDGService.Data.Helper.Pinyin.GetInitials(NewItem.MedicalItemName) : NewItem.Mnemonic;
                                 MedicalItemRecordStore.Insert(NewItem);
 
-                                MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                 medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                 medicalDrugExtension.DataState = 1;
                                 medicalDrugExtension.IsCurrentUse = true;
@@ -1491,7 +1492,7 @@ namespace CDGService.WebAPI.DataCore
                             }
                             string Itemid = Guid.NewGuid().tostring32();
                             // item.Id = Itemid;
-                            MedicalItemRecord NewItem = Mapper.Map<MedicalItemRecord>(item);
+                            MedicalItemRecord NewItem = _mapper.Map<MedicalItemRecord>(item);
                             // NewItem.Id = Itemid;
                             // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
                             NewItem.Founder = userId;
@@ -1613,7 +1614,7 @@ namespace CDGService.WebAPI.DataCore
                                         MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                                     }
 
-                                    MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                    MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                     medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                     medicalDrugExtension.DataState = 1;
                                     medicalDrugExtension.IsCurrentUse = true;
@@ -1640,7 +1641,7 @@ namespace CDGService.WebAPI.DataCore
                                 NewItem.Mnemonic = NewItem.Mnemonic == "" ? CDGService.Data.Helper.Pinyin.GetInitials(NewItem.MedicalItemName) : NewItem.Mnemonic;
                                 MedicalItemRecordStore.Insert(NewItem);
 
-                                MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                 medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                 medicalDrugExtension.DataState = 1;
                                 medicalDrugExtension.IsCurrentUse = true;
@@ -1698,7 +1699,7 @@ namespace CDGService.WebAPI.DataCore
                             }
                             string Itemid = Guid.NewGuid().tostring32();
                             // item.Id = Itemid;
-                            MedicalItemRecord NewItem = Mapper.Map<MedicalItemRecord>(item);
+                            MedicalItemRecord NewItem = _mapper.Map<MedicalItemRecord>(item);
                             // NewItem.Id = Itemid;
                             // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
                             NewItem.Founder = userId;
@@ -1792,7 +1793,7 @@ namespace CDGService.WebAPI.DataCore
                                         MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                                     }
 
-                                    MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                    MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                     medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                     medicalDrugExtension.DataState = 1;
                                     medicalDrugExtension.IsCurrentUse = true;
@@ -1819,7 +1820,7 @@ namespace CDGService.WebAPI.DataCore
                                 NewItem.Mnemonic = NewItem.Mnemonic == "" ? CDGService.Data.Helper.Pinyin.GetInitials(NewItem.MedicalItemName) : NewItem.Mnemonic;
                                 MedicalItemRecordStore.Insert(NewItem);
 
-                                MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                 medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                 medicalDrugExtension.DataState = 1;
                                 medicalDrugExtension.IsCurrentUse = true;
@@ -1875,7 +1876,7 @@ namespace CDGService.WebAPI.DataCore
                             }
                             string Itemid = Guid.NewGuid().tostring32();
                             // item.Id = Itemid;
-                            MedicalItemRecord NewItem = Mapper.Map<MedicalItemRecord>(item);
+                            MedicalItemRecord NewItem = _mapper.Map<MedicalItemRecord>(item);
                             // NewItem.Id = Itemid;
                             // Newcenter.DialysisCode = ValueHelper.TimeNowRandom('C');
                             NewItem.Founder = userId;
@@ -1996,7 +1997,7 @@ namespace CDGService.WebAPI.DataCore
                                         MedicalDrugExtensionStore.Update(_MedicalDrugExtensione);
                                     }
 
-                                    MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                    MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                     medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                     medicalDrugExtension.DataState = 1;
                                     medicalDrugExtension.IsCurrentUse = true;
@@ -2023,7 +2024,7 @@ namespace CDGService.WebAPI.DataCore
                                 NewItem.Mnemonic = NewItem.Mnemonic == "" ? CDGService.Data.Helper.Pinyin.GetInitials(NewItem.MedicalItemName) : NewItem.Mnemonic;
                                 MedicalItemRecordStore.Insert(NewItem);
 
-                                MedicalDrugExtension medicalDrugExtension = Mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
+                                MedicalDrugExtension medicalDrugExtension = _mapper.Map<MedicalDrugExtension>(item.MedicalDrugExtension);
                                 medicalDrugExtension.Id = Guid.NewGuid().tostring32();
                                 medicalDrugExtension.DataState = 1;
                                 medicalDrugExtension.IsCurrentUse = true;

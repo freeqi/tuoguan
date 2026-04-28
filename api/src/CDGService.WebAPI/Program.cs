@@ -31,14 +31,14 @@ namespace CDGService.WebAPI
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseKestrel(option =>
-                    {
-                        option.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(20);
-                        option.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20);
-                    })
-                    .UseUrls("http://*:12345")//设置服务地址
-                    .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseStartup<Startup>();
+                    //webBuilder.UseKestrel(option =>
+                    //{
+                    //    option.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(20);
+                    //    option.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(20);
+                    //});
+                    webBuilder.UseUrls();
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
+                    webBuilder.UseStartup<Startup>();
                 });
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,15 +32,15 @@ namespace CDGService.WebAPI.DataCore
         private readonly IGetUserInfo _getUserInfo;
         private readonly LogManager _logManager;
         private readonly MenuManager _menuManager;
+        private readonly IMapper _mapper;
 
-        public UserManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, LogManager logManager, MenuManager menuManager)
+        public UserManager(IUnitOfWork unitOfWork, IGetUserInfo getUserInfo, LogManager logManager, MenuManager menuManager, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _getUserInfo = getUserInfo;
             _logManager = logManager;
             _menuManager = menuManager;
-
-
+            _mapper = mapper;
         }
 
         private IRepository<User> UserStore => _unitOfWork.GetStore<User>();
@@ -146,7 +146,7 @@ namespace CDGService.WebAPI.DataCore
                 MenuOutPut curItem = new MenuOutPut() { title = "根节点", Id = "0", ParentMenuCode = "0" };
 
 
-                MenuOutPut[] result = Mapper.Map<MenuOutPut[]>(dat.Distinct());
+                MenuOutPut[] result = _mapper.Map<MenuOutPut[]>(dat.Distinct());
                 menu listmenus = new menu();
 
                 LoopToAppendChildren(result, curItem, listmenus);
@@ -333,7 +333,7 @@ namespace CDGService.WebAPI.DataCore
                     if (string.IsNullOrEmpty(input.Pwd))
                         throw new Exception(MessageFormater.PrameterNeedProvider("input.Pwd"));
 
-                    data = Mapper.Map<User>(input);
+                    data = _mapper.Map<User>(input);
                     data.Id = Guid.NewGuid().tostring32();
                     data.Pwd = input.Pwd.MD5();
                     data.IsDelete = false;
@@ -451,13 +451,13 @@ namespace CDGService.WebAPI.DataCore
                     if (input.PageNum > 0 && input.PageSize > 0)
                     {
                         var Dialysis = await PaginatedList<User>.CreateAsync(datas, input.PageNum, input.PageSize);
-                        //  result = Mapper.Map<CenterDialysisOutPut[]>(Dialysis);
+                        //  result = _mapper.Map<CenterDialysisOutPut[]>(Dialysis);
 
-                        result = Mapper.Map<UserOutput[]>(Dialysis);
+                        result = _mapper.Map<UserOutput[]>(Dialysis);
                     }
                     else
                     {
-                        result = Mapper.Map<UserOutput[]>(datas);
+                        result = _mapper.Map<UserOutput[]>(datas);
                     }
                     for (int i = 0; i < result.Length; i++)
                     {
@@ -617,7 +617,7 @@ namespace CDGService.WebAPI.DataCore
                 try
                 {
                     var datas = await MenuStore.Entities.Where(t => t.IsDelete == false).ToArrayAsync();
-                    result = Mapper.Map<MenuOutPut[]>(datas);
+                    result = _mapper.Map<MenuOutPut[]>(datas);
                     _rolePermission = await RolePermissionStore.Entities.Where(t => t.Roleld == RoleId).ToListAsync();
                     LoopToAppendChildren(result, curItem, rolePermissionsOutPuts);
                 }

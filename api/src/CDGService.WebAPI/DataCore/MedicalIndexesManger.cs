@@ -1,4 +1,4 @@
-﻿﻿using CDGService.Data.Datas;
+﻿﻿﻿using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Dto;
 using CDGService.Utils;
@@ -24,13 +24,14 @@ namespace CDGService.WebAPI.DataCore
         private readonly IUnitOfWork _unitOfWork;
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
-        public MedicalIndexesManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo)
+        private readonly IMapper _mapper;
+        public MedicalIndexesManger(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
-
+            _mapper = mapper;
         }
         private IRepository<MedicalIndexesMonth> MaintenanceRecordStore => _unitOfWork.GetStore<MedicalIndexesMonth>();
         private IRepository<CenterDialysis> DialysisStore => _unitOfWork.GetStore<CenterDialysis>();
@@ -64,7 +65,7 @@ namespace CDGService.WebAPI.DataCore
                     predicate = predicate.And(t => t.StatisticalType == inPut.medicalStatisticalType);
                     predicate = predicate.And(t => t.FounderDate.Value.ToString("yyyy-MM") == inPut.QueryDateTime.ToString("yyyy-MM"));
                     var data = await MaintenanceRecordStore.Entities.Where(predicate).OrderBy(t => t.Indicators).ToArrayAsync();
-                    result = Mapper.Map<MedicalIndexesMonthOutPut[]>(data);
+                    result = _mapper.Map<MedicalIndexesMonthOutPut[]>(data);
 
                     //死亡名单
                     if (inPut.medicalStatisticalType == MedicalStatisticalType.Regression)
@@ -152,7 +153,7 @@ namespace CDGService.WebAPI.DataCore
                     //   predicate = predicate.And(t => t.StatisticalType == inPut.medicalStatisticalType);
                     predicate = predicate.And(t => t.FounderDate.Value.ToString("yyyy-MM") == inPut.QueryDateTime.ToString("yyyy-MM"));
                     var data = await MaintenanceRecordStore.Entities.Include(t => t.centerDialysis).Where(predicate).OrderBy(t => t.centerDialysis.SortNnm).ToArrayAsync();
-                    result = Mapper.Map<AllCenterMedicalIndexesMonthOutPut[]>(data);
+                    result = _mapper.Map<AllCenterMedicalIndexesMonthOutPut[]>(data);
                     //死亡名单
                     if (inPut.medicalIndicatorsMonth == MedicalIndicatorsMonth.DeathPatients)
                     {
@@ -259,7 +260,7 @@ namespace CDGService.WebAPI.DataCore
                                     tags.Add(new Tag() { Id = item.Id, Name = item.Name, Age = flag.TransferDate.Value.Year - item.Birthday.Value.Year, TagTime = flag.TransferDate.Value.ToShortDateString() });
                             }
                         }
-                        result = Mapper.Map<MedicalIndexesYearOutPut[]>(data);
+                        result = _mapper.Map<MedicalIndexesYearOutPut[]>(data);
                         if (result.Count() > 0 && result.Where(t => t.Indicators == MedicalIndicatorsYear.SWZLS).Count() > 0)
                             result.Where(t => t.Indicators == MedicalIndicatorsYear.SWZLS).FirstOrDefault().tags = tags;
                     }
@@ -294,7 +295,7 @@ namespace CDGService.WebAPI.DataCore
                     //   predicate = predicate.And(t => t.StatisticalType == inPut.medicalStatisticalType);
                     predicate = predicate.And(t => t.FounderDate.Value.ToString("yyyy") == inPut.QueryDateTime.ToString("yyyy"));
                     var data = await MedicalIndexesYearStore.Entities.Include(t => t.centerDialysis).Where(predicate).OrderBy(t => t.centerDialysis.SortNnm).ToArrayAsync();
-                    result = Mapper.Map<AllCenterMedicalIndexesYearOutPut[]>(data);
+                    result = _mapper.Map<AllCenterMedicalIndexesYearOutPut[]>(data);
                     //死亡名单
                     if (inPut.medicalIndicatorsYear == MedicalIndicatorsYear.SWZLS)
                     {

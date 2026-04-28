@@ -1,4 +1,4 @@
-﻿﻿using CDGService.Data.Datas;
+﻿﻿﻿using CDGService.Data.Datas;
 using CDGService.Data.Store;
 using CDGService.WebAPI.Datas;
 using CDGService.WebAPI.Dto;
@@ -24,19 +24,20 @@ namespace CDGService.WebAPI.DataCore
         private readonly LogManager _logManager;
         private readonly IGetUserInfo _getUserInfo;
         private readonly DictionaryCode _dictionaryCode;
+        private readonly IMapper _mapper;
 
 
 
 
 
-        public PatientsManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode)
+        public PatientsManager(IUnitOfWork unitOfWork, LogManager logManager, IGetUserInfo getUserInfo, IOptions<DictionaryCode> dictionaryCode, IMapper mapper)
         {
 
             _getUserInfo = getUserInfo;
             _unitOfWork = unitOfWork;
             _logManager = logManager;
             _dictionaryCode = dictionaryCode.Value;
-
+            _mapper = mapper;
         }
         private IRepository<Patient> PatientStore => _unitOfWork.GetStore<Patient>();
         private IRepository<SystemDictionary> DictionaryStore => _unitOfWork.GetStore<SystemDictionary>();
@@ -134,13 +135,13 @@ namespace CDGService.WebAPI.DataCore
                     if (input.PageNum > 0 && input.PageSize > 0)
                     { 
                         var persons = await PaginatedList<Patient>.CreateAsync(Sum, input.PageNum, input.PageSize);
-                        result = Mapper.Map<PatientOutPut[]>(persons);
+                        result = _mapper.Map<PatientOutPut[]>(persons);
                         count = Sum.Count();
                     }
                     else
                     {
                         var datas = await Sum.ToArrayAsync();
-                        result = Mapper.Map<PatientOutPut[]>(datas);
+                        result = _mapper.Map<PatientOutPut[]>(datas);
                         count = result.Length;
 
                     }
@@ -488,13 +489,13 @@ namespace CDGService.WebAPI.DataCore
                     var AllergyRegisters = await AllergyRegistersStore.Entities.Where(t => t.PatientId == PatientID).ToListAsync();
                     var TumorRegisters = await TumorRegistersStore.Entities.Where(t => t.PatientId == PatientID).ToListAsync();
 
-                    result.medicalHistoryFirst = Mapper.Map<MedicalHistoryFirstOutPut>(MedicalHistory);
-                    result.firstPageItemCurrentDiagnosis = Mapper.Map<FirstPageItemCurrentDiagnosisOutPut[]>(firstPageItemCurrentDiagnosis);
-                    result.vascularAccessRecord = Mapper.Map<VascularAccessRecordOutPut[]>(VascularAccessRecords);
-                    result.infectiousDiseaseRegister = Mapper.Map<InfectiousDiseaseRegisterOutPut[]>(InfectiousDiseaseRegisters);
-                    result.allergyRegister = Mapper.Map<AllergyRegisterOutPut[]>(AllergyRegisters);
-                    result.tumorRegister = Mapper.Map<TumorRegisterOutPut[]>(TumorRegisters);
-                    result.HomePageInfo = Mapper.Map<PatientOutPut>(Patientdata);
+                    result.medicalHistoryFirst = _mapper.Map<MedicalHistoryFirstOutPut>(MedicalHistory);
+                    result.firstPageItemCurrentDiagnosis = _mapper.Map<FirstPageItemCurrentDiagnosisOutPut[]>(firstPageItemCurrentDiagnosis);
+                    result.vascularAccessRecord = _mapper.Map<VascularAccessRecordOutPut[]>(VascularAccessRecords);
+                    result.infectiousDiseaseRegister = _mapper.Map<InfectiousDiseaseRegisterOutPut[]>(InfectiousDiseaseRegisters);
+                    result.allergyRegister = _mapper.Map<AllergyRegisterOutPut[]>(AllergyRegisters);
+                    result.tumorRegister = _mapper.Map<TumorRegisterOutPut[]>(TumorRegisters);
+                    result.HomePageInfo = _mapper.Map<PatientOutPut>(Patientdata);
                     //result.medicalHistoryFirst = FirstPageItemCurrentDiagnosiss;
 
 
@@ -526,8 +527,8 @@ namespace CDGService.WebAPI.DataCore
                     FirstOutpatientRecord result = new FirstOutpatientRecord();
                     var Patientdata = await PatientStore.Entities.Include(t => t.Dialysis).Include(t => t.SBloodBorneDisease).Include(t => t.SHospitalState).Include(t => t.SRHBloodType).Include(t => t.SSIInsuredType).Include(t => t.SABOBloodType).Include(t => t.SEducationBackground).Include(t => t.SMarital).Where(t => t.Id == PatientID).FirstOrDefaultAsync();
                     var data = await FirstOutpatientRecordStore.Entities.Where(t => t.PatientId == PatientID).FirstOrDefaultAsync();
-                    outpatientRecordOutPut.firstOutpatientRecordOutPut = Mapper.Map<FirstOutpatientRecordOutPut>(data);
-                    outpatientRecordOutPut.HomePageInfo = Mapper.Map<PatientOutPut>(Patientdata);
+                    outpatientRecordOutPut.firstOutpatientRecordOutPut = _mapper.Map<FirstOutpatientRecordOutPut>(data);
+                    outpatientRecordOutPut.HomePageInfo = _mapper.Map<PatientOutPut>(Patientdata);
 
                     return outpatientRecordOutPut;
                 }
@@ -554,8 +555,8 @@ namespace CDGService.WebAPI.DataCore
                     FirstOutpatientRecord result = new FirstOutpatientRecord();
                     var Patientdata = await PatientStore.Entities.Include(t => t.Dialysis).Include(t => t.SBloodBorneDisease).Include(t => t.SHospitalState).Include(t => t.SRHBloodType).Include(t => t.SSIInsuredType).Include(t => t.SABOBloodType).Include(t => t.SEducationBackground).Include(t => t.SMarital).Where(t => t.Id == PatientID).FirstOrDefaultAsync();
                     var data = await OutpatientMedicalRecordStore.Entities.Where(t => t.PatientId == PatientID).ToArrayAsync();
-                    outpatientRecordOutPut.outpatientMedicalRecord = Mapper.Map<OutpatientMedicalRecordOutPut[]>(data);
-                    outpatientRecordOutPut.HomePageInfo = Mapper.Map<PatientOutPut>(Patientdata);
+                    outpatientRecordOutPut.outpatientMedicalRecord = _mapper.Map<OutpatientMedicalRecordOutPut[]>(data);
+                    outpatientRecordOutPut.HomePageInfo = _mapper.Map<PatientOutPut>(Patientdata);
                     data.OrderByDescending(t => t.TreatmentDate).Select(t => t.TreatmentDate.Value).ToList().ForEach(t => outpatientRecordOutPut.DateList.Add(t.ToString("yyyy-MM-dd")));
                     return outpatientRecordOutPut;
                 }

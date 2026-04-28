@@ -122,7 +122,7 @@ namespace CDGService.WebAPI.Dto
                 to.DialysisName = from.ShortName;
             }
             );
-            CreateMap<CenterDialysis, CenterDialysisOutPut>().AfterMap((from, to) =>
+            CreateMap<CenterDialysis, CenterDialysisOutPut>().ForMember(d => d.DialysisRegionID, a => a.Ignore()).AfterMap((from, to) =>
             {
                 if (from.DialysisRegions != null)
                     to.DialysisRegion = from.DialysisRegions.RegionName;
@@ -629,15 +629,15 @@ namespace CDGService.WebAPI.Dto
 
             });
 
-            CreateMap<PurchaseDetail, PurchaseDetailOutPut>().AfterMap((from, to) =>
+            CreateMap<PurchaseDetail, PurchaseDetailOutPut>().AfterMap((from, to, context) =>
             {
 
                 if (from.medicalItemRecord != null)
                 {
-                    to.medicalItemRecordOutPut = Mapper.Map<MedicalItemRecordOutPut>(from.medicalItemRecord);
+                    to.medicalItemRecordOutPut = context.Mapper.Map<MedicalItemRecordOutPut>(from.medicalItemRecord);
                     if (from.medicalItemRecord.MedicalDrugExtensions != null)
                     {
-                        to.medicalItemRecordOutPut.MedicalDrugExtension = Mapper.Map<MedicalDrugExtensionOutput>(from.medicalItemRecord.MedicalDrugExtensions.Where(t => t.IsCurrentUse == true).FirstOrDefault());
+                        to.medicalItemRecordOutPut.MedicalDrugExtension = context.Mapper.Map<MedicalDrugExtensionOutput>(from.medicalItemRecord.MedicalDrugExtensions.Where(t => t.IsCurrentUse == true).FirstOrDefault());
                         if (to.medicalItemRecordOutPut.MedicalDrugExtension != null && to.medicalItemRecordOutPut.HiCenterCode + "" != "")
                             to.SocialSecurityPrice = to.medicalItemRecordOutPut.MedicalDrugExtension.SocialSecurityPrice;
                     }
@@ -930,12 +930,12 @@ namespace CDGService.WebAPI.Dto
             CreateMap<NoticeMedicalInput, NoticeMedical>();
             CreateMap<NoticeMedical, NoticeMedicalOutPut>();
             CreateMap<UsersMsg, UserMsgOutPut>();
-            CreateMap<Information, InformationOutPut>().AfterMap((from, to) =>
+            CreateMap<Information, InformationOutPut>().AfterMap((from, to, context) =>
             {
                 to.SendTime = from.FounderDate;
                 to.UserName = from.user.Employee.Name;
-                to.noticeMedicalOutPuts = Mapper.Map<NoticeMedicalOutPut[]>(from.NoticeMedicals);
-                to.UsersMsgs = Mapper.Map<UserMsgOutPut[]>(from.UsersMsgs);
+                to.noticeMedicalOutPuts = context.Mapper.Map<NoticeMedicalOutPut[]>(from.NoticeMedicals);
+                to.UsersMsgs = context.Mapper.Map<UserMsgOutPut[]>(from.UsersMsgs);
             });
             CreateMap<FeedbackReply, FeedbackReplyOutPut>().AfterMap((from, to) =>
             {
@@ -946,12 +946,12 @@ namespace CDGService.WebAPI.Dto
                 to.BackUserName = from.user.Name;
             });
 
-            CreateMap<Feedback, FeedbackReplysOutPut>().AfterMap((from, to) =>
+            CreateMap<Feedback, FeedbackReplysOutPut>().AfterMap((from, to, context) =>
             {
                 to.BackUserName = from.user.Name;
                 to.BackTime = from.BackTime.Value.ToString("yyyy-MM-dd HH:mm:ss");
 
-                to.feedbackReplyOutPuts = Mapper.Map<FeedbackReplyOutPut[]>(from.feedbackReplys);
+                to.feedbackReplyOutPuts = context.Mapper.Map<FeedbackReplyOutPut[]>(from.feedbackReplys);
             });
 
 

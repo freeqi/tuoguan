@@ -1,18 +1,11 @@
-using System;
-using System.ComponentModel;
-using System.Linq;
 using Castle.DynamicProxy;
-using System.Reflection;
-using CDGService.WebAPI.Datas;
-using System.Threading.Tasks;
-using Autofac;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.Kestrel;
 using CDGService.Data.Datas;
 using CDGService.Data.Threading;
 using CDGService.WebAPI.DataCore;
-using System.IO;
-using Microsoft.AspNetCore.Http;
+using CDGService.WebAPI.Datas;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System.Reflection;
 
 namespace CDGService.WebAPI.Extenstions
 {
@@ -30,6 +23,7 @@ namespace CDGService.WebAPI.Extenstions
     /// 返回对象必须为Task<ServiceMessage<>>
     /// 方法必须被标记为 virtual
     /// </summary>
+    [Obsolete("已弃用，其职能由" + nameof(HttpGlobalExceptionFilter) + "替代")]
     public class ServiceMessageTryCatchAttribute : Attribute
     {
     }
@@ -37,11 +31,38 @@ namespace CDGService.WebAPI.Extenstions
     /// <summary>
     /// 检查是否登录
     /// </summary>
-    public class CheckLoginAttribute : Attribute
+    public class CheckLoginAttribute : ActionFilterAttribute
     {
+        ///<inheritdoc/>
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            var token = context.HttpContext.Request.Headers["token"].ToString();
+            if (string.IsNullOrWhiteSpace(token))
+                throw new Exception("未登录的请求");
 
+            var tokenChecker = context.HttpContext.RequestServices.GetRequiredService<TokenChecker>();
+            var userId = tokenChecker.IsValid(token);
+            if (string.IsNullOrEmpty(userId))
+                throw new Exception("未授权的请求或授权已过期");
+
+            await context.HttpContext.RequestServices.GetRequiredService<IGetUserInfo>().SetUserInfo(token);
+
+            //所有提交的参数包写入日志 
+            context.HttpContext.Request.EnableBuffering();
+            context.HttpContext.Request.Body.Position = 0;
+            var requestReader = new StreamReader(context.HttpContext.Request.Body);
+            var requestContent = await requestReader.ReadToEndAsync();
+            context.HttpContext.Request.Body.Position = 0;
+            string filename = Path.Combine(Directory.GetCurrentDirectory(), "Logs/Operation",
+                $"CDGServiceWebApi{DateTime.Now.ToString("yyyyMMdd")}.log");
+            string Content = $"======================================================\r\n操作人：{userId}\r\n请求方式：{context.HttpContext.Request.Method}\r\n路由：{context.HttpContext.Request.Path}\r\n数据包：{requestContent}\r\n时间：{DateTime.Now}";
+            LogHelper.WriteCommLog(Content, filename);
+
+            await base.OnActionExecutionAsync(context, next);
+        }
     }
 
+    [Obsolete("已弃用，其职能由" + nameof(CheckLoginAttribute) + "与" + nameof(HttpGlobalExceptionFilter) + "替代")]
     public class ServiceMessageTryCatchInterceptor : IInterceptor
     {
         private readonly TokenChecker _tokenChecker;
@@ -78,7 +99,7 @@ namespace CDGService.WebAPI.Extenstions
                         exception = exception.InnerException;
                     var s = Activator.CreateInstance(gtype, exception);
                     var ee = Convert.ChangeType(s, gtype);
-                    var adviceTaskSource = TaskCompletionSource.Create(d.GetTaskType());
+                    var adviceTaskSource = Data.Threading.TaskCompletionSource.Create(d.GetTaskType());
                     adviceTaskSource.SetResult(ee);
                     LogHelper.WriteErrLog($"调用方法{invocation.Method?.Name}出现异常：{exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
                     invocation.ReturnValue = adviceTaskSource.Task;
@@ -94,7 +115,7 @@ namespace CDGService.WebAPI.Extenstions
                 var ip = (invocation.Proxy as ControllerBase)?.HttpContext.GetUserIp();
 
                 if (ip.Contains("172.16.7") || ip.Contains("172.16.6"))
-                { 
+                {
                     throw new Exception("禁止访问");
                 }
                 else

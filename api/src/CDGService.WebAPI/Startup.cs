@@ -1,32 +1,13 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using CDGService.Application.Service.Net;
+using CDGService.Data;
 using CDGService.Store;
 using CDGService.Store.Extensions;
-using CDGService.WebAPI.Controllers;
 using CDGService.WebAPI.DataCore;
+using CDGService.WebAPI.Dto;
 using CDGService.WebAPI.Extenstions;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Cors;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Microsoft.AspNetCore.Mvc;
-using CDGService.Data;
-using CDGService.Application.Service.Net;
-using System.Data;
-using System.Linq;
-using CDGService.Utils;
 
 namespace CDGService.WebAPI
 {
@@ -64,7 +45,7 @@ namespace CDGService.WebAPI
             services.AddOptions().Configure<System.Collections.Generic.List<PurchApproval>>(Configuration.GetSection("PurchApproval"));
             services.AddOptions().Configure<System.Collections.Generic.List<OrderPricingRole>>(Configuration.GetSection("OrderPricingRole"));
             services.AddOptions().Configure<System.Collections.Generic.List<BusinessTarget>>(Configuration.GetSection("BusinessTarget"));
-            
+
             //配置日志
             services.AddLogging(loggingBuilder =>
             {
@@ -72,10 +53,10 @@ namespace CDGService.WebAPI
                 loggingBuilder.AddDebug();
                 loggingBuilder.AddConfiguration(Configuration.GetSection("Logging"));
             });
-            
+
             services.AddDbStore();
             services.AddWebDataReceive();
-            
+
             #region 配置跨域处理 
             services.AddCors(options =>
             {
@@ -110,8 +91,8 @@ namespace CDGService.WebAPI
 
             //配置AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));
-            
-            services.AddControllers();
+
+            services.AddControllers(options => options.Filters.Add<HttpGlobalExceptionFilter>()).AddNewtonsoftJson();
         }
 
         public void ConfigureContainer(ContainerBuilder builder)
@@ -130,12 +111,13 @@ namespace CDGService.WebAPI
 
             using (var scope = app.ApplicationServices.CreateScope())
             {
+                // 初始化数据库
                 var appdb = scope.ServiceProvider.GetService<AppDb>();
                 appdb.Database.Migrate();
                 appdb.InitEmployeeInfo();
                 appdb.InitUserInfo();
                 appdb.ClearExpireTokens();
-                
+
                 // 初始化静态Mapper
                 var mapper = scope.ServiceProvider.GetService<AutoMapper.IMapper>();
                 CDGService.WebAPI.Extenstions.AutoMapperHelper.Initialize(mapper);
@@ -167,7 +149,7 @@ namespace CDGService.WebAPI
             ConfigLog(loggerFactory);
 
             bool IsCollent = Convert.ToBoolean(Configuration.GetConnectionString("IsCollent"));
-            
+
             //采集
             Task.Run(async () =>
             {
@@ -218,7 +200,7 @@ namespace CDGService.WebAPI
                                 await EmployeeManger.AutoEmpTransferAsync();
                                 string filename = Path.Combine(Directory.GetCurrentDirectory(), "Logs/Common",
                                     $"CDGServiceWebApi{DateTime.Now.ToString("yyyyMMdd")}.log");
-                                CDGService.Utils.FileHelper.WriteLog(filename, $"完成职工调动"); 
+                                CDGService.Utils.FileHelper.WriteLog(filename, $"完成职工调动");
                                 var DockingManger = scope.ServiceProvider.GetService<CenterDockingManger>();
                                 await DockingManger.UpdateMedicalDrugExtensions();
                                 await DockingManger.GetGoodsInStockdInfo();

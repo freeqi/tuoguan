@@ -345,7 +345,7 @@ export default {
       this.swsApi.swsPost('Tenant/tenantlist', pageParams).then(res => {
         this.dataCount = res.data.dataCount
         this.data = res.data.result
-        if (res.data.error === null) {
+        if (res.data.error === null || res.data.code === 0) {
           this.loading = false
           this.table_data = res.data.result
         }

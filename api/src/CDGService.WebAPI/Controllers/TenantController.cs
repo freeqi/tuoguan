@@ -22,10 +22,11 @@ namespace CDGService.WebAPI.Controllers
         /// 获取租户列表
         /// </summary>
         [HttpGet("list")]
+        [HttpPost("tenantlist")]
         public async Task<IActionResult> GetTenants()
         {
             var result = await _tenantManager.GetTenantsAsync();
-            return Ok(result);
+            return Ok(new { success = true, result = result, dataCount = result.Count, code = 0 });
         }
 
         /// <summary>

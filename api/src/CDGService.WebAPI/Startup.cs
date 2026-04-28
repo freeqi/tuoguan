@@ -111,12 +111,12 @@ namespace CDGService.WebAPI
 
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                // 暂时注释数据库初始化代码，让服务能够启动
-                //var appdb = scope.ServiceProvider.GetService<AppDb>();
-                //appdb.Database.Migrate();
-                //appdb.InitEmployeeInfo();
-                //appdb.InitUserInfo();
-                //appdb.ClearExpireTokens();
+                // 初始化数据库
+                var appdb = scope.ServiceProvider.GetService<AppDb>();
+                appdb.Database.Migrate();
+                appdb.InitEmployeeInfo();
+                appdb.InitUserInfo();
+                appdb.ClearExpireTokens();
 
                 // 初始化静态Mapper
                 var mapper = scope.ServiceProvider.GetService<AutoMapper.IMapper>();

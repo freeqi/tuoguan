@@ -15,12 +15,12 @@ namespace CDGService.WebAPI.DataCore
         private readonly IRepository<User> _userRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public TenantManager(IRepository<Tenant> tenantRepository, IRepository<UserTenant> userTenantRepository, IRepository<User> userRepository, IUnitOfWork unitOfWork)
+        public TenantManager(IUnitOfWork unitOfWork)
         {
-            _tenantRepository = tenantRepository;
-            _userTenantRepository = userTenantRepository;
-            _userRepository = userRepository;
             _unitOfWork = unitOfWork;
+            _tenantRepository = _unitOfWork.GetStore<Tenant>();
+            _userTenantRepository = _unitOfWork.GetStore<UserTenant>();
+            _userRepository = _unitOfWork.GetStore<User>();
         }
 
         /// <summary>
